@@ -9,12 +9,15 @@ import { AnalysisForm } from './components/AnalysisForm';
 import { ResultDisplay } from './components/ResultDisplay';
 import { Info, ScrollText, Compass, History } from 'lucide-react';
 import { AnalysisMode } from './types';
+import { MethodologyModal } from './components/MethodologyModal';
 
 const App: React.FC = () => {
   const {
     input, setInput, apiKey, setApiKey, mode, loading, result, error,
     handleNavClick, handleSubmit, resetResult
   } = useFortuneTelling();
+
+  const [isMethodologyOpen, setIsMethodologyOpen] = React.useState(false);
 
   const handleReload = () => window.location.reload();
 
@@ -118,7 +121,12 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <Footer />
+      <Footer onOpenMethodology={() => setIsMethodologyOpen(true)} />
+
+      <MethodologyModal
+        isOpen={isMethodologyOpen}
+        onClose={() => setIsMethodologyOpen(false)}
+      />
     </div>
   );
 };
