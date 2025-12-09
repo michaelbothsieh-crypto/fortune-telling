@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { analyzeBaZi } from './services/geminiService';
 import { UserInput, Gender, AnalysisResponse, CalendarType, AnalysisMode } from './types';

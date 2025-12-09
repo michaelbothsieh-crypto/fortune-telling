@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { analyzeBaZi } from './services/geminiService';
@@ -7,10 +6,9 @@ import { PillarCard } from './components/PillarCard';
 import { LoadingView } from './components/LoadingView';
 import { ChatInterface } from './components/ChatInterface';
 import ReactMarkdown from 'react-markdown';
-import { Search, Sparkles, BookOpen, ScrollText, Key, Info, MessageCircle, Feather, Calendar, Compass, History } from 'lucide-react';
+import { Search, Sparkles, BookOpen, ScrollText, Info, MessageCircle, Feather, Calendar, Compass, History } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [apiKey, setApiKey] = useState(process.env.API_KEY || '');
   const [input, setInput] = useState<UserInput>({
     birthDate: '1989-02-10',
     birthTime: '13:30', 
@@ -36,17 +34,13 @@ const App: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiKey) {
-      setError("請輸入 Gemini API Key 以啟動大師引擎");
-      return;
-    }
     
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const data = await analyzeBaZi(apiKey, input, mode);
+      const data = await analyzeBaZi(input, mode);
       setResult(data);
     } catch (err: any) {
       setError(err.message || "論命過程中發生錯誤，請稍後再試。");
@@ -116,22 +110,6 @@ const App: React.FC = () => {
               {mode === AnalysisMode.SCHOLARLY && '專為命理研究者設計。大師將引用《三命通會》、《神峰通考》原文，探討格局高低，考證神煞真偽，還原八字學術原貌。'}
             </p>
           </section>
-        )}
-
-        {/* API Key Input */}
-        {!process.env.API_KEY && (
-           <div className="bg-mystic-800 p-4 rounded-lg border border-mystic-700 max-w-lg mx-auto mb-8 shadow-inner">
-             <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
-               <Key size={14} /> Gemini API Key
-             </label>
-             <input
-               type="password"
-               value={apiKey}
-               onChange={(e) => setApiKey(e.target.value)}
-               placeholder="請在此輸入您的 Gemini API Key"
-               className="w-full bg-mystic-900 border border-mystic-700 rounded px-3 py-2 text-white focus:border-mystic-gold focus:outline-none transition-colors"
-             />
-           </div>
         )}
 
         {/* Process Card & Form */}
@@ -283,7 +261,7 @@ const App: React.FC = () => {
               <div className="md:col-span-2 pt-4">
                 <button 
                   type="submit" 
-                  disabled={loading || !apiKey}
+                  disabled={loading}
                   className="w-full bg-gradient-to-r from-mystic-accent to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-bold py-4 rounded-lg shadow-lg transform transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 border border-amber-900/50"
                 >
                   <Sparkles size={18} />
@@ -406,7 +384,7 @@ const App: React.FC = () => {
             </section>
 
             {/* Chat Interface */}
-            <ChatInterface apiKey={apiKey} chartContext={result} />
+            <ChatInterface chartContext={result} />
             
             <div className="text-center pt-8">
               <button 
