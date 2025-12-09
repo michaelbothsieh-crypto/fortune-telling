@@ -1,4 +1,4 @@
-// /// <reference types="vite/client" />
+/// <reference types="vite/client" />
 // If the above line fails in your environment, use the declarations below and comment out the reference.
 // Since the error is explicitly about this line, we provide the manual definitions to ensure build success.
 

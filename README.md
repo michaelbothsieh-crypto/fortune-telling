@@ -1,78 +1,49 @@
-# 天機算命 - AI 八字大師 (Master BaZi)
+# 天機算命 - AI 八字大師
 
-![App Screenshot](https://via.placeholder.com/800x400?text=Master+BaZi+App)
+這是基於 Google Gemini AI 的八字算命應用程式，結合傳統子平八字學理與現代 AI 技術，為您提供深入的命理分析。
 
-這是一個結合傳統命理學與現代 AI 技術的八字論命應用程式。透過 Google Gemini 強大的語言模型，模擬一位擁有 30 年經驗的命理宗師，為使用者提供精準的八字排盤、格局分析、流年運勢預測及古籍考據。
+## 特色功能
 
-## ✨ 核心特色
+- **正宗八字排盤**：精確換算真太陽時與節氣 (支援 1900-2100 年)。
+- **AI 大師論命**：
+    - **八字論命**：分析格局、用神、五行喜忌。
+    - **流年運勢**：針對 2025 (乙巳)、2026 (丙午) 等流年進行吉凶預測。
+    - **古籍考據**：引用《三命通會》、《滴天髓》等古文進行深度學術探討。
+- **雙重解讀風格**：
+    - **白話解讀**：淺顯易懂，適合一般大眾。
+    - **古籍專業**：模仿徐樂吾大師風格，適合命理研究者。
+- **在地化設計**：全繁體中文介面，符合台灣用語習慣。
 
-*   **宗師級 AI 人設**：
-    *   嚴格遵循《子平真詮》、《滴天髓》、《神峰通考》等經典理論。
-    *   模仿民國初年命理泰斗「徐樂吾」的自評風格進行論斷。
-    *   融合「梁湘潤」大師的古法神煞與流年流月考據。
+## 技術架構
 
-*   **三大論命模式**：
-    1.  **八字正宗 (Basic Analysis)**：全方位分析本命局、強弱、格局、病藥與調候。
-    2.  **流年運勢 (Yearly Fortune)**：針對 2025 (乙巳)、2026 (丙午) 等流年進行吉凶預測。
-    3.  **古籍考據 (Scholarly Research)**：深度引用古文經典，探討命造之學術價值與特殊格局。
+- **前端**：React 18 + TypeScript + Vite
+- **樣式**：Tailwind CSS
+- **AI 模型**：Google Gemini 2.0 Flash (via `@google/genai`)
+- **部署**：GitHub Pages
 
-*   **精準排盤系統**：
-    *   支援 **國曆/農曆** 雙曆法輸入。
-    *   支援 **農曆閏月** 處理。
-    *   自動進行 **真太陽時** 節氣換算，確保四柱排列精準無誤。
+## 本地開發
 
-*   **沈浸式體驗**：
-    *   **神秘東方美學**：深色石材背景搭配金石篆刻風格 UI。
-    *   **動態思考展示**：可視化大師的「排盤 -> 定格 -> 取用」思考過程。
-    *   **雙語解讀**：同時提供「古文專業版」與「白話白話版」分析。
-    *   **大師對話**：算完後可透過對話視窗向大師追問細節。
+1. 安裝依賴：
+   ```bash
+   npm install
+   ```
 
-## 🛠 技術架構
+2. 設定 API Key：
+   在根目錄新增 `.env` 檔案，並填入您的 Gemini API Key：
+   ```
+   VITE_API_KEY=your_api_key_here
+   ```
 
-本專案為單頁應用程式 (SPA)，無需傳統後端伺服器，直接利用瀏覽器呼叫 AI 模型。
+3. 啟動開發伺服器：
+   ```bash
+   npm run dev
+   ```
 
-*   **前端框架**：React 19 + TypeScript + Vite
-*   **樣式庫**：Tailwind CSS (自定義 Mystic 主題)
-*   **AI 整合**：Google Gemini API (`@google/genai` SDK)
-*   **Markdown 渲染**：`react-markdown`
-*   **圖標庫**：`lucide-react`
+4. 建置生產版本：
+   ```bash
+   npm run build
+   ```
 
-## 🚀 快速開始
+## 關於作者
 
-### 1. 取得 Gemini API Key
-請前往 [Google AI Studio](https://aistudio.google.com/) 申請免費的 API Key。
-
-### 2. 環境變數設定
-您可以將 API Key 設定在環境變數中，或是在網頁介面上直接輸入。
-
-### 3. 安裝與執行
-
-```bash
-# 安裝依賴
-npm install
-
-# 啟動開發伺服器
-npm run dev
-```
-
-### 4. 部署
-本專案支援部署至任何靜態網站託管服務（如 GitHub Pages, Vercel, Netlify）。
-
-## 📜 專案結構
-
-```
-├── src/
-│   ├── components/      # UI 組件 (PillarCard, ChatInterface, LoadingView...)
-│   ├── services/        # 業務邏輯與 API 串接 (geminiService.ts)
-│   ├── types.ts         # TypeScript 型別定義
-│   ├── App.tsx          # 主應用程式
-│   └── index.tsx        # 入口點
-├── index.html           # HTML 模板
-└── vite.config.ts       # Vite 設定
-```
-
-## 🤝 貢獻
-歡迎提交 Issue 或 Pull Request 來改進論命演算法或擴充古籍資料庫。
-
----
-*注意：本程式僅供娛樂與學術研究參考，命運掌握在自己手中。*
+本專案由 AI 協作開發，旨在探索傳統命理與人工智慧的結合可能。

@@ -50,10 +50,10 @@ export const analyzeBaZi = async (
   input: UserInput,
   mode: AnalysisMode
 ): Promise<AnalysisResponse> => {
-  const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
   let specificInstruction = "";
-  
+
   if (mode === AnalysisMode.YEARLY) {
     specificInstruction = `
     【特殊任務：流年運勢模式】
@@ -122,13 +122,13 @@ export const analyzeBaZi = async (
 
   try {
     const chat = genAI.chats.create({
-        model: "gemini-2.5-flash",
-        config: {
-          systemInstruction: systemInstruction,
-          responseMimeType: "application/json",
-          responseSchema: analysisSchema,
-          temperature: 0.85,
-        },
+      model: "gemini-2.5-flash",
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: analysisSchema,
+        temperature: 0.85,
+      },
     });
 
     const response = await chat.sendMessage({ message: userPrompt });
@@ -148,7 +148,7 @@ export const chatWithMaster = async (
   newMessage: string,
   chartContext: AnalysisResponse
 ): Promise<string> => {
-  const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
   // Construct context from the chart analysis
   const systemPrompt = `

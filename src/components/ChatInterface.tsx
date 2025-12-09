@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Sparkles } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
 import { ChatMessage, AnalysisResponse } from '../types';
 import { chatWithMaster } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
@@ -50,23 +50,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) =>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-mystic-900/30 scroll-custom">
         {history.length === 0 && (
-           <div className="text-center text-gray-500 py-10 opacity-70">
-             <p>您可以詢問：</p>
-             <ul className="text-sm mt-2 space-y-1">
-               <li>「我的適合做什麼行業？」</li>
-               <li>「2026年要注意什麼細節？」</li>
-               <li>「我的感情運勢如何？」</li>
-             </ul>
-           </div>
+          <div className="text-center text-gray-500 py-10 opacity-70">
+            <p>您可以詢問：</p>
+            <ul className="text-sm mt-2 space-y-1">
+              <li>「我的適合做什麼行業？」</li>
+              <li>「2026年要注意什麼細節？」</li>
+              <li>「我的感情運勢如何？」</li>
+            </ul>
+          </div>
         )}
-        
+
         {history.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-lg p-3 ${
-              msg.role === 'user' 
-                ? 'bg-mystic-700 text-white rounded-br-none' 
+            <div className={`max-w-[85%] rounded-lg p-3 ${msg.role === 'user'
+                ? 'bg-mystic-700 text-white rounded-br-none'
                 : 'bg-[#fdfbf7] text-gray-800 rounded-bl-none border-l-4 border-mystic-gold'
-            }`}>
+              }`}>
               {msg.role === 'model' ? (
                 <div className="prose prose-sm max-w-none">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -77,7 +76,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) =>
             </div>
           </div>
         ))}
-        
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-[#fdfbf7] p-3 rounded-lg rounded-bl-none border-l-4 border-mystic-gold flex items-center space-x-2">
@@ -98,8 +97,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) =>
           disabled={isLoading}
           className="flex-1 bg-mystic-900 border border-mystic-600 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none"
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isLoading || !input.trim()}
           className="bg-mystic-gold hover:bg-yellow-600 text-mystic-900 font-bold p-2 rounded transition-colors disabled:opacity-50"
         >
