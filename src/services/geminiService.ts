@@ -49,7 +49,6 @@ const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
 // Retry Helper
 const executeWithRetry = async <T>(
   action: (model: string) => Promise<T>,
-  apiKey: string,
   modelModels: string[]
 ): Promise<T> => {
   let lastError: any;
@@ -225,7 +224,7 @@ export const analyzeBaZi = async (
       return JSON.parse(response.text) as AnalysisResponse;
     }
     throw new Error("大師正在沉思中，請稍後再試...");
-  }, finalApiKey, prioritizedModels);
+  }, prioritizedModels);
 };
 
 export const chatWithMaster = async (
@@ -261,7 +260,7 @@ export const chatWithMaster = async (
     const chat = genAI.chats.create({
       model: model,
       config: {
-        systemInstruction: systemInstruction,
+        systemInstruction: systemPrompt,
       },
       history: history.map(msg => ({
         role: msg.role,
@@ -270,5 +269,5 @@ export const chatWithMaster = async (
     });
     const result = await chat.sendMessage({ message: newMessage });
     return result.text || "";
-  }, finalApiKey, prioritizedModels);
+  }, prioritizedModels);
 };
