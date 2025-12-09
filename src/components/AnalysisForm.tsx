@@ -32,6 +32,7 @@ export const AnalysisForm: React.FC<AnalysisFormProps> = ({ input, setInput, han
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* API Key Input */}
+                {/* API Key Input */}
                 <div className="md:col-span-2 bg-mystic-900/50 p-4 rounded-lg border border-mystic-700 mb-2">
                     <label className="block text-sm text-gray-400 mb-2">
                         Google Gemini API Key (選填)

@@ -129,7 +129,7 @@ export const analyzeBaZi = async (
 
   try {
     const chat = genAI.chats.create({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-1.5-flash",
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
@@ -179,7 +179,7 @@ export const chatWithMaster = async (
   `;
 
   const chat = genAI.chats.create({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-1.5-flash",
     config: {
       systemInstruction: systemPrompt,
     },
