@@ -10,6 +10,7 @@ export const useFortuneTelling = () => {
         calendarType: CalendarType.GREGORIAN,
         isLeapMonth: false,
     });
+    const [apiKey, setApiKey] = useState('');
     const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.BASIC);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<AnalysisResponse | null>(null);
@@ -31,7 +32,7 @@ export const useFortuneTelling = () => {
         setResult(null);
 
         try {
-            const data = await analyzeBaZi(input, mode);
+            const data = await analyzeBaZi(input, mode, apiKey);
             setResult(data);
         } catch (err: any) {
             setError(err.message || "論命過程中發生錯誤，請稍後再試。");
@@ -45,6 +46,8 @@ export const useFortuneTelling = () => {
     return {
         input,
         setInput,
+        apiKey,
+        setApiKey,
         mode,
         loading,
         result,

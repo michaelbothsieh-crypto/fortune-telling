@@ -9,9 +9,10 @@ interface ResultDisplayProps {
     result: AnalysisResponse;
     mode: AnalysisMode;
     onReset: () => void;
+    apiKey: string;
 }
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onReset }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onReset, apiKey }) => {
     const [activeTab, setActiveTab] = useState<'modern' | 'classical'>('modern');
 
     return (
@@ -116,7 +117,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
             </section>
 
             {/* Chat Interface */}
-            <ChatInterface chartContext={result} />
+            <ChatInterface chartContext={result} apiKey={apiKey} />
 
             <div className="text-center pt-8">
                 <button

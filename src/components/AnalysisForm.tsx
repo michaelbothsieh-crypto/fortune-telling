@@ -2,15 +2,18 @@ import React from 'react';
 import { Search, Sparkles, Calendar } from 'lucide-react';
 import { UserInput, Gender, CalendarType, AnalysisMode } from '../types';
 
+
 interface AnalysisFormProps {
     input: UserInput;
     setInput: (input: UserInput) => void;
     handleSubmit: (e: React.FormEvent) => void;
     loading: boolean;
     mode: AnalysisMode;
+    apiKey: string;
+    setApiKey: (key: string) => void;
 }
 
-export const AnalysisForm: React.FC<AnalysisFormProps> = ({ input, setInput, handleSubmit, loading, mode }) => {
+export const AnalysisForm: React.FC<AnalysisFormProps> = ({ input, setInput, handleSubmit, loading, mode, apiKey, setApiKey }) => {
     const getButtonText = () => {
         switch (mode) {
             case AnalysisMode.YEARLY: return '開始推算流年吉凶';
@@ -27,6 +30,23 @@ export const AnalysisForm: React.FC<AnalysisFormProps> = ({ input, setInput, han
             </div>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* API Key Input */}
+                <div className="md:col-span-2 bg-mystic-900/50 p-4 rounded-lg border border-mystic-700 mb-2">
+                    <label className="block text-sm text-gray-400 mb-2">
+                        Google Gemini API Key (選填)
+                    </label>
+                    <input
+                        type="password"
+                        placeholder="若無環境變數設定，請在此輸入您的 API Key"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        className="w-full bg-mystic-900 border border-mystic-700 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none transition-colors text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                        * 註：本系統之「排盤論命」與「大師對話」功能皆需呼叫 AI 運算生成內容，故需消耗 API 配額。若您有自己的 Key 可在此輸入 (不會儲存於伺服器)。
+                    </p>
+                </div>
 
                 {/* Calendar Type Toggle */}
                 <div className="md:col-span-2">

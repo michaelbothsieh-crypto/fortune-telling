@@ -46,11 +46,18 @@ const analysisSchema: Schema = {
   required: ["chart", "classical", "modern", "summary"],
 };
 
+
 export const analyzeBaZi = async (
   input: UserInput,
-  mode: AnalysisMode
+  mode: AnalysisMode,
+  apiKey?: string
 ): Promise<AnalysisResponse> => {
-  const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) {
+    throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
 
   let specificInstruction = "";
 
@@ -122,7 +129,7 @@ export const analyzeBaZi = async (
 
   try {
     const chat = genAI.chats.create({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash-exp",
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
@@ -146,9 +153,14 @@ export const analyzeBaZi = async (
 export const chatWithMaster = async (
   history: ChatMessage[],
   newMessage: string,
-  chartContext: AnalysisResponse
+  chartContext: AnalysisResponse,
+  apiKey?: string
 ): Promise<string> => {
-  const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) {
+    throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
 
   // Construct context from the chart analysis
   const systemPrompt = `
@@ -167,7 +179,7 @@ export const chatWithMaster = async (
   `;
 
   const chat = genAI.chats.create({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.0-flash-exp",
     config: {
       systemInstruction: systemPrompt,
     },

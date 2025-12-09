@@ -7,9 +7,10 @@ import ReactMarkdown from 'react-markdown';
 
 interface ChatInterfaceProps {
   chartContext: AnalysisResponse;
+  apiKey: string;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiKey }) => {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +32,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) =>
     setIsLoading(true);
 
     try {
-      const response = await chatWithMaster(history, userMsg, chartContext);
+      const response = await chatWithMaster(history, userMsg, chartContext, apiKey);
       setHistory(prev => [...prev, { role: 'model', content: response }]);
     } catch (error) {
       setHistory(prev => [...prev, { role: 'model', content: "大師暫時去休息了，請稍後再問。" }]);
@@ -63,8 +64,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) =>
         {history.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-lg p-3 ${msg.role === 'user'
-                ? 'bg-mystic-700 text-white rounded-br-none'
-                : 'bg-[#fdfbf7] text-gray-800 rounded-bl-none border-l-4 border-mystic-gold'
+              ? 'bg-mystic-700 text-white rounded-br-none'
+              : 'bg-[#fdfbf7] text-gray-800 rounded-bl-none border-l-4 border-mystic-gold'
               }`}>
               {msg.role === 'model' ? (
                 <div className="prose prose-sm max-w-none">

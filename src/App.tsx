@@ -12,7 +12,7 @@ import { AnalysisMode } from './types';
 
 const App: React.FC = () => {
   const {
-    input, setInput, mode, loading, result, error,
+    input, setInput, apiKey, setApiKey, mode, loading, result, error,
     handleNavClick, handleSubmit, resetResult
   } = useFortuneTelling();
 
@@ -95,6 +95,8 @@ const App: React.FC = () => {
             handleSubmit={handleSubmit}
             loading={loading}
             mode={mode}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
           />
 
           {error && (
@@ -111,6 +113,7 @@ const App: React.FC = () => {
             result={result}
             mode={mode}
             onReset={resetResult}
+            apiKey={apiKey}
           />
         )}
       </main>
