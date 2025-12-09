@@ -2,12 +2,11 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { UserInput, AnalysisResponse, ChatMessage, CalendarType, AnalysisMode } from "../types";
 
-// Helper for Dynamic Model Selection
-// Sorts available models by version (descending) then tier (Ultra > Pro > Flash)
-const resolveBestModel = async (apiKey: string): Promise<string> => {
+// Helper: Get Prioritized Models List
+const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    if (!response.ok) return "gemini-2.0-flash";
+    if (!response.ok) return ["gemini-2.0-flash", "gemini-1.5-flash"];
 
     const data = await response.json();
     const models = (data.models || []).map((m: any) => m.name.replace('models/', ''));
@@ -40,14 +39,50 @@ const resolveBestModel = async (apiKey: string): Promise<string> => {
       return getTierScore(b) - getTierScore(a);
     });
 
-    if (candidates.length > 0) return candidates[0];
+    return candidates.length > 0 ? candidates : ["gemini-2.0-flash"];
   } catch (e) {
     console.warn("Model resolution error, using fallback.");
+    return ["gemini-2.0-flash"];
   }
-  return "gemini-2.0-flash";
 };
 
-// Updated Schema for structured separation of content
+// Retry Helper
+const executeWithRetry = async <T>(
+  action: (model: string) => Promise<T>,
+  apiKey: string,
+  modelModels: string[]
+): Promise<T> => {
+  let lastError: any;
+
+  // Ensure we have at least one fallback
+  if (modelModels.length === 0) modelModels.push("gemini-2.0-flash");
+
+  for (const model of modelModels) {
+    try {
+      console.log(`[Gemini Service] Attempting execution with model: ${model}`);
+      return await action(model);
+    } catch (error: any) {
+      console.warn(`[Gemini Service] Model ${model} failed.`, error);
+      lastError = error;
+
+      // Only retry on specific errors (404 Not Found, 429 Quota Exceeded, 503 Overloaded)
+      const isRetryable =
+        error.message?.includes("404") ||
+        error.message?.includes("not found") ||
+        error.message?.includes("429") ||
+        error.message?.includes("quota") ||
+        error.message?.includes("503");
+
+      if (!isRetryable) {
+        throw error; // Propagate critical errors immediately
+      }
+      // Otherwise loop to next model
+    }
+  }
+  throw lastError;
+};
+
+// Updated Schema
 const analysisSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -102,25 +137,16 @@ export const analyzeBaZi = async (
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
 
-  // Dynamic Model Selection using Heuristic
-  let selectedModel = "gemini-2.0-flash"; // Default fallback
-  try {
-    selectedModel = await resolveBestModel(finalApiKey);
-    console.log(`[Auto-Select] Selected optimized model: ${selectedModel}`);
-  } catch (e) {
-    console.warn("Model resolution failed, using default:", selectedModel);
-  }
-
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
 
   let specificInstruction = "";
-
   if (mode === AnalysisMode.YEARLY) {
     specificInstruction = `
     【特殊任務：流年運勢模式】
     請將分析重點放在 **2025年 (乙巳)** 與 **2026年 (丙午)** 的運勢預測。
     
-    1. **classical (古文)**：重點分析流年干支與原局的刑沖會合。例如「乙巳流年，巳為火之臨官，與原局...」。需引用梁湘潤流年法。
+    1. **classical (古文)**：重點分析流年干支與原局ের刑沖會合。例如「乙巳流年，巳為火之臨官，與原局...」。需引用梁湘潤流年法。
     2. **modern (白話)**：
        - 詳細說明這兩年的事業升遷機會、財運起伏、感情變化。
        - 提醒具體的月份（例如：農曆五月火旺之時...）。
@@ -181,9 +207,10 @@ export const analyzeBaZi = async (
     請開始排盤並論命。
   `;
 
-  try {
+  // Use Execute with Retry Logic
+  return await executeWithRetry(async (model) => {
     const chat = genAI.chats.create({
-      model: selectedModel,
+      model: model,
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
@@ -198,10 +225,7 @@ export const analyzeBaZi = async (
       return JSON.parse(response.text) as AnalysisResponse;
     }
     throw new Error("大師正在沉思中，請稍後再試...");
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw error;
-  }
+  }, finalApiKey, prioritizedModels);
 };
 
 export const chatWithMaster = async (
@@ -215,12 +239,7 @@ export const chatWithMaster = async (
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
-
-  // Dynamic Model Selection using Heuristic
-  let selectedModel = "gemini-2.0-flash";
-  try {
-    selectedModel = await resolveBestModel(finalApiKey);
-  } catch (e) { }
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
 
   // Construct context from the chart analysis
   const systemPrompt = `
@@ -238,17 +257,18 @@ export const chatWithMaster = async (
     4. 若使用者問及2026年運勢，請再次強調流年丙午的影響。
   `;
 
-  const chat = genAI.chats.create({
-    model: selectedModel,
-    config: {
-      systemInstruction: systemPrompt,
-    },
-    history: history.map(msg => ({
-      role: msg.role,
-      parts: [{ text: msg.content }]
-    })),
-  });
-
-  const result = await chat.sendMessage({ message: newMessage });
-  return result.text || "";
+  return await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model: model,
+      config: {
+        systemInstruction: systemInstruction,
+      },
+      history: history.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }]
+      })),
+    });
+    const result = await chat.sendMessage({ message: newMessage });
+    return result.text || "";
+  }, finalApiKey, prioritizedModels);
 };
