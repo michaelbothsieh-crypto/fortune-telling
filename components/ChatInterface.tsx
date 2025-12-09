@@ -6,11 +6,10 @@ import { chatWithMaster } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
 
 interface ChatInterfaceProps {
-  apiKey: string;
   chartContext: AnalysisResponse;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ apiKey, chartContext }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext }) => {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +31,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ apiKey, chartConte
     setIsLoading(true);
 
     try {
-      const response = await chatWithMaster(apiKey, history, userMsg, chartContext);
+      const response = await chatWithMaster(history, userMsg, chartContext);
       setHistory(prev => [...prev, { role: 'model', content: response }]);
     } catch (error) {
       setHistory(prev => [...prev, { role: 'model', content: "大師暫時去休息了，請稍後再問。" }]);

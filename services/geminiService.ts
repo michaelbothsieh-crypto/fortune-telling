@@ -47,11 +47,10 @@ const analysisSchema: Schema = {
 };
 
 export const analyzeBaZi = async (
-  apiKey: string,
   input: UserInput,
   mode: AnalysisMode
 ): Promise<AnalysisResponse> => {
-  const genAI = new GoogleGenAI({ apiKey });
+  const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   let specificInstruction = "";
   
@@ -145,12 +144,11 @@ export const analyzeBaZi = async (
 };
 
 export const chatWithMaster = async (
-  apiKey: string,
   history: ChatMessage[],
   newMessage: string,
   chartContext: AnalysisResponse
 ): Promise<string> => {
-  const genAI = new GoogleGenAI({ apiKey });
+  const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   // Construct context from the chart analysis
   const systemPrompt = `
