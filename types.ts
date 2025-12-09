@@ -9,6 +9,12 @@ export enum CalendarType {
   LUNAR = '農曆',
 }
 
+export enum AnalysisMode {
+  BASIC = '八字正宗',
+  YEARLY = '流年運勢',
+  SCHOLARLY = '古籍考據',
+}
+
 export interface Pillar {
   stem: string;
   branch: string;
@@ -36,7 +42,7 @@ export interface UserInput {
   birthTime: string;
   gender: Gender;
   calendarType: CalendarType;
-  isLeapMonth: boolean; // 是否為閏月 (農曆用)
+  isLeapMonth: boolean;
 }
 
 export interface ChatMessage {

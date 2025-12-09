@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { analyzeBaZi } from './services/geminiService';
-import { UserInput, Gender, AnalysisResponse, CalendarType } from './types';
+import { UserInput, Gender, AnalysisResponse, CalendarType, AnalysisMode } from './types';
 import { PillarCard } from './components/PillarCard';
 import { LoadingView } from './components/LoadingView';
 import { ChatInterface } from './components/ChatInterface';
 import ReactMarkdown from 'react-markdown';
-import { Search, Sparkles, BookOpen, ScrollText, Key, Info, MessageCircle, Feather, Calendar } from 'lucide-react';
+import { Search, Sparkles, BookOpen, ScrollText, Key, Info, MessageCircle, Feather, Calendar, Compass, History } from 'lucide-react';
 
 const App: React.FC = () => {
   const [apiKey, setApiKey] = useState(process.env.API_KEY || '');
@@ -18,14 +18,20 @@ const App: React.FC = () => {
     calendarType: CalendarType.GREGORIAN,
     isLeapMonth: false,
   });
+  const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.BASIC);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'modern' | 'classical'>('modern');
 
-  const handleNavClick = (e: React.MouseEvent, feature: string) => {
+  const handleNavClick = (e: React.MouseEvent, selectedMode: AnalysisMode) => {
     e.preventDefault();
-    alert(`【${feature}】功能即將上線，敬請期待大師更新！`);
+    setMode(selectedMode);
+    // Optional: Auto-scroll to form or reset result if user wants to start fresh
+    if (result) {
+       // Keep result but update UI indication, user needs to click submit again for new mode
+       setResult(null); 
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,12 +46,20 @@ const App: React.FC = () => {
     setResult(null);
 
     try {
-      const data = await analyzeBaZi(apiKey, input);
+      const data = await analyzeBaZi(apiKey, input, mode);
       setResult(data);
     } catch (err: any) {
       setError(err.message || "論命過程中發生錯誤，請稍後再試。");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getButtonText = () => {
+    switch (mode) {
+      case AnalysisMode.YEARLY: return '開始推算流年吉凶';
+      case AnalysisMode.SCHOLARLY: return '開始進行古法考據';
+      default: return '開始排盤論命';
     }
   };
 
@@ -64,9 +78,24 @@ const App: React.FC = () => {
             </div>
           </div>
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <a href="#" className="text-mystic-gold font-bold border-b border-mystic-gold pb-1">八字論命</a>
-            <a href="#" onClick={(e) => handleNavClick(e, '流年運勢')} className="hover:text-mystic-gold transition-colors pb-1 border-b border-transparent hover:border-mystic-gold">流年運勢</a>
-            <a href="#" onClick={(e) => handleNavClick(e, '古籍考據')} className="hover:text-mystic-gold transition-colors pb-1 border-b border-transparent hover:border-mystic-gold">古籍考據</a>
+            <button 
+              onClick={(e) => handleNavClick(e, AnalysisMode.BASIC)} 
+              className={`transition-colors pb-1 border-b-2 ${mode === AnalysisMode.BASIC ? 'text-mystic-gold border-mystic-gold font-bold' : 'border-transparent hover:text-mystic-gold'}`}
+            >
+              八字論命
+            </button>
+            <button 
+              onClick={(e) => handleNavClick(e, AnalysisMode.YEARLY)} 
+              className={`transition-colors pb-1 border-b-2 ${mode === AnalysisMode.YEARLY ? 'text-mystic-gold border-mystic-gold font-bold' : 'border-transparent hover:text-mystic-gold'}`}
+            >
+              流年運勢
+            </button>
+            <button 
+              onClick={(e) => handleNavClick(e, AnalysisMode.SCHOLARLY)} 
+              className={`transition-colors pb-1 border-b-2 ${mode === AnalysisMode.SCHOLARLY ? 'text-mystic-gold border-mystic-gold font-bold' : 'border-transparent hover:text-mystic-gold'}`}
+            >
+              古籍考據
+            </button>
           </nav>
         </div>
       </header>
@@ -77,12 +106,14 @@ const App: React.FC = () => {
         {!result && !loading && (
           <section className="text-center space-y-6 py-10 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-calligraphy text-mystic-gold drop-shadow-lg leading-tight">
-              批八字 · 斷吉凶 · 決疑難
+              {mode === AnalysisMode.BASIC && '批八字 · 斷吉凶 · 決疑難'}
+              {mode === AnalysisMode.YEARLY && '乙巳丙午 · 流年禍福 · 先知'}
+              {mode === AnalysisMode.SCHOLARLY && '窮通寶鑑 · 滴天髓 · 考據'}
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto leading-loose text-lg">
-              本站採正宗子平法，融合《滴天髓》之哲理、《窮通寶鑑》之調候、《神峰通考》之病藥。
-              <br/>
-              傳承三十年實務經驗，為您精確排盤，並以徐樂吾大師風格進行深度剖析。
+              {mode === AnalysisMode.BASIC && '本站採正宗子平法，融合《滴天髓》之哲理、《窮通寶鑑》之調候。傳承三十年實務經驗，為您精確排盤，並以徐樂吾大師風格進行深度剖析。'}
+              {mode === AnalysisMode.YEARLY && '針對 2025 乙巳年與 2026 丙午年進行深度流年分析。運用梁湘潤流年流月秘法，預判事業、財運、健康之關鍵轉折。'}
+              {mode === AnalysisMode.SCHOLARLY && '專為命理研究者設計。大師將引用《三命通會》、《神峰通考》原文，探討格局高低，考證神煞真偽，還原八字學術原貌。'}
             </p>
           </section>
         )}
@@ -108,19 +139,47 @@ const App: React.FC = () => {
           {/* Process Explanation Card */}
           <div className="bg-mystic-800/50 border border-mystic-700 rounded-xl p-6 mb-8 relative overflow-hidden">
              <div className="absolute top-0 right-0 p-4 opacity-10">
-               <ScrollText size={100} />
+               {mode === AnalysisMode.BASIC && <ScrollText size={100} />}
+               {mode === AnalysisMode.YEARLY && <Compass size={100} />}
+               {mode === AnalysisMode.SCHOLARLY && <History size={100} />}
              </div>
              <h3 className="text-mystic-gold font-bold mb-4 flex items-center gap-2">
-               <Info size={18} /> 本站論命七大步驟
+               <Info size={18} /> 
+               {mode === AnalysisMode.BASIC && '本站論命七大步驟'}
+               {mode === AnalysisMode.YEARLY && '流年推算重點'}
+               {mode === AnalysisMode.SCHOLARLY && '古法考據流程'}
              </h3>
              <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-400 list-decimal list-inside">
-               <li><span className="text-gray-300 font-bold">精確排盤</span>：換算真太陽時與節氣</li>
-               <li><span className="text-gray-300 font-bold">強弱定格</span>：依《子平真詮》定格局</li>
-               <li><span className="text-gray-300 font-bold">扶抑用神</span>：尋求命局五行平衡</li>
-               <li><span className="text-gray-300 font-bold">病藥取用</span>：依《神峰通考》去病</li>
-               <li><span className="text-gray-300 font-bold">調候潤局</span>：依《窮通寶鑑》調氣候</li>
-               <li><span className="text-gray-300 font-bold">神煞空亡</span>：梁湘潤古法考據</li>
-               <li><span className="text-gray-300 font-bold">流年斷事</span>：推算2026丙午年運勢</li>
+               {mode === AnalysisMode.BASIC && (
+                 <>
+                   <li><span className="text-gray-300 font-bold">精確排盤</span>：換算真太陽時與節氣</li>
+                   <li><span className="text-gray-300 font-bold">強弱定格</span>：依《子平真詮》定格局</li>
+                   <li><span className="text-gray-300 font-bold">扶抑用神</span>：尋求命局五行平衡</li>
+                   <li><span className="text-gray-300 font-bold">病藥取用</span>：依《神峰通考》去病</li>
+                   <li><span className="text-gray-300 font-bold">調候潤局</span>：依《窮通寶鑑》調氣候</li>
+                   <li><span className="text-gray-300 font-bold">神煞空亡</span>：梁湘潤古法考據</li>
+                   <li><span className="text-gray-300 font-bold">流年斷事</span>：推算2026丙午年運勢</li>
+                 </>
+               )}
+               {mode === AnalysisMode.YEARLY && (
+                 <>
+                   <li><span className="text-gray-300 font-bold">大運審查</span>：判斷目前十年大運吉凶</li>
+                   <li><span className="text-gray-300 font-bold">流年干支</span>：分析乙巳、丙午年之進氣</li>
+                   <li><span className="text-gray-300 font-bold">刑沖會合</span>：流年與原局之交互作用</li>
+                   <li><span className="text-gray-300 font-bold">太歲神煞</span>：查察流年神煞之影響</li>
+                   <li><span className="text-gray-300 font-bold">事業財運</span>：針對性預測職場變動</li>
+                   <li><span className="text-gray-300 font-bold">健康提醒</span>：五行太過或不及之症</li>
+                 </>
+               )}
+               {mode === AnalysisMode.SCHOLARLY && (
+                 <>
+                   <li><span className="text-gray-300 font-bold">格局辨析</span>：引用《真詮》原文定格</li>
+                   <li><span className="text-gray-300 font-bold">古籍對照</span>：檢索《三命通會》類似命造</li>
+                   <li><span className="text-gray-300 font-bold">詩訣驗證</span>：引用古詩訣印證吉凶</li>
+                   <li><span className="text-gray-300 font-bold">特殊格局</span>：檢查是否為專旺或從格</li>
+                   <li><span className="text-gray-300 font-bold">納音五行</span>：輔以古法納音論命</li>
+                 </>
+               )}
              </ol>
           </div>
 
@@ -228,7 +287,7 @@ const App: React.FC = () => {
                   className="w-full bg-gradient-to-r from-mystic-accent to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-bold py-4 rounded-lg shadow-lg transform transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 border border-amber-900/50"
                 >
                   <Sparkles size={18} />
-                  <span>{loading ? '大師正在推算天機...' : '開始排盤論命'}</span>
+                  <span>{loading ? '大師正在推算天機...' : getButtonText()}</span>
                 </button>
               </div>
             </form>
@@ -304,7 +363,11 @@ const App: React.FC = () => {
                {/* Decorative stamp */}
                <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
                  <div className="border-4 border-red-800 rounded-sm w-32 h-32 flex items-center justify-center transform rotate-12">
-                   <span className="font-calligraphy text-4xl text-red-800">命理<br/>正宗</span>
+                   <span className="font-calligraphy text-4xl text-red-800">
+                     {mode === AnalysisMode.BASIC && '命理\n正宗'}
+                     {mode === AnalysisMode.YEARLY && '流年\n吉凶'}
+                     {mode === AnalysisMode.SCHOLARLY && '古法\n考據'}
+                   </span>
                  </div>
                </div>
 

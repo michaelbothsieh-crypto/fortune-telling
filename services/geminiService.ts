@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserInput, AnalysisResponse, ChatMessage, CalendarType } from "../types";
+import { UserInput, AnalysisResponse, ChatMessage, CalendarType, AnalysisMode } from "../types";
 
 // Updated Schema for structured separation of content
 const analysisSchema: Schema = {
@@ -48,9 +48,43 @@ const analysisSchema: Schema = {
 
 export const analyzeBaZi = async (
   apiKey: string,
-  input: UserInput
+  input: UserInput,
+  mode: AnalysisMode
 ): Promise<AnalysisResponse> => {
   const genAI = new GoogleGenAI({ apiKey });
+
+  let specificInstruction = "";
+  
+  if (mode === AnalysisMode.YEARLY) {
+    specificInstruction = `
+    【特殊任務：流年運勢模式】
+    請將分析重點放在 **2025年 (乙巳)** 與 **2026年 (丙午)** 的運勢預測。
+    
+    1. **classical (古文)**：重點分析流年干支與原局的刑沖會合。例如「乙巳流年，巳為火之臨官，與原局...」。需引用梁湘潤流年法。
+    2. **modern (白話)**：
+       - 詳細說明這兩年的事業升遷機會、財運起伏、感情變化。
+       - 提醒具體的月份（例如：農曆五月火旺之時...）。
+       - 給出具體的趨吉避凶建議。
+    `;
+  } else if (mode === AnalysisMode.SCHOLARLY) {
+    specificInstruction = `
+    【特殊任務：古籍考據模式】
+    請化身為考據學家，將重點放在學術探討。
+    
+    1. **classical (古文)**：
+       - 必須大量引用《三命通會》、《滴天髓》、《淵海子平》原文。
+       - 討論此命造的格局高低成敗（如：「此格近似...，惜...」）。
+       - 驗證古書中的詩訣（如：「詩云：...」）。
+    2. **modern (白話)**：
+       - 解釋上述引用的古文含義。
+       - 說明此命造在古代會是什麼成就，在現代又對應什麼社會地位。
+    `;
+  } else {
+    specificInstruction = `
+    【標準任務：八字正宗模式】
+    請依據標準七步驟進行全面論斷：強弱、格局、用神、病藥、調候、神煞、大運流年。
+    `;
+  }
 
   const systemInstruction = `
     【身分設定】
@@ -62,18 +96,7 @@ export const analyzeBaZi = async (
     【重要：曆法換算】
     若命主提供的是「農曆」日期，你必須先運用你的曆法知識，將其轉換為對應年份的「國曆（西元）」日期，並以此推算真太陽時的節氣，以決定正確的月柱與年柱分界（立春）。
 
-    【論命七步驟】
-    1. **排四柱**：精確計算干支（注意節氣）。
-    2. **判斷強弱與格局**：依《子平真詮》定格（如七殺格、食神生財格），看日主得令得地情形。
-    3. **取用神**：
-       - 扶抑用神（平衡）
-       - 通關用神（疏通）
-       - 病藥用神（依《神峰通考》，有病方為貴）
-       - 調候用神（依《窮通寶鑑》，寒暖濕燥）
-    4. **查空亡**：依梁湘潤古法，檢查四柱地支空亡。
-    5. **看神煞**：標註關鍵神煞。
-    6. **大運流年**：推算當前大運，並重點分析 **2026 丙午年**。
-    7. **總結**。
+    ${specificInstruction}
 
     【輸出風格要求】
     1. **classical (徐樂吾風格)**：
@@ -88,6 +111,7 @@ export const analyzeBaZi = async (
 
   const userPrompt = `
     命主資料：
+    分析模式：${mode}
     輸入日期類型：${input.calendarType} ${input.calendarType === CalendarType.LUNAR && input.isLeapMonth ? '(閏月)' : ''}
     輸入日期：${input.birthDate}
     出生時間：${input.birthTime}
@@ -144,7 +168,6 @@ export const chatWithMaster = async (
     4. 若使用者問及2026年運勢，請再次強調流年丙午的影響。
   `;
 
-  // Use ai.chats.create to start a new chat session with history
   const chat = genAI.chats.create({
     model: "gemini-2.5-flash",
     config: {
