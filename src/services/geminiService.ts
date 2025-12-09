@@ -2,6 +2,51 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { UserInput, AnalysisResponse, ChatMessage, CalendarType, AnalysisMode } from "../types";
 
+// Helper for Dynamic Model Selection
+// Sorts available models by version (descending) then tier (Ultra > Pro > Flash)
+const resolveBestModel = async (apiKey: string): Promise<string> => {
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (!response.ok) return "gemini-2.0-flash";
+
+    const data = await response.json();
+    const models = (data.models || []).map((m: any) => m.name.replace('models/', ''));
+
+    // Filter usable models
+    const candidates = models.filter((name: string) =>
+      name.includes('gemini') &&
+      !name.includes('vision') &&
+      !name.includes('embedding')
+    );
+
+    // Sort by Heuristic
+    candidates.sort((a: string, b: string) => {
+      // 1. Version Check
+      const getVersion = (n: string) => {
+        const match = n.match(/(\d+\.\d+)/);
+        return match ? parseFloat(match[1]) : 0;
+      };
+      const vA = getVersion(a);
+      const vB = getVersion(b);
+      if (vA !== vB) return vB - vA; // Higher version first
+
+      // 2. Tier Check
+      const getTierScore = (n: string) => {
+        if (n.includes('ultra')) return 3;
+        if (n.includes('pro')) return 2;
+        if (n.includes('flash')) return 1;
+        return 0;
+      };
+      return getTierScore(b) - getTierScore(a);
+    });
+
+    if (candidates.length > 0) return candidates[0];
+  } catch (e) {
+    console.warn("Model resolution error, using fallback.");
+  }
+  return "gemini-2.0-flash";
+};
+
 // Updated Schema for structured separation of content
 const analysisSchema: Schema = {
   type: Type.OBJECT,
@@ -55,6 +100,15 @@ export const analyzeBaZi = async (
   const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
   if (!finalApiKey) {
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+
+  // Dynamic Model Selection using Heuristic
+  let selectedModel = "gemini-2.0-flash"; // Default fallback
+  try {
+    selectedModel = await resolveBestModel(finalApiKey);
+    console.log(`[Auto-Select] Selected optimized model: ${selectedModel}`);
+  } catch (e) {
+    console.warn("Model resolution failed, using default:", selectedModel);
   }
 
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
@@ -129,7 +183,7 @@ export const analyzeBaZi = async (
 
   try {
     const chat = genAI.chats.create({
-      model: "gemini-1.5-flash",
+      model: selectedModel,
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
@@ -162,6 +216,12 @@ export const chatWithMaster = async (
   }
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
 
+  // Dynamic Model Selection using Heuristic
+  let selectedModel = "gemini-2.0-flash";
+  try {
+    selectedModel = await resolveBestModel(finalApiKey);
+  } catch (e) { }
+
   // Construct context from the chart analysis
   const systemPrompt = `
     你現在正與命主進行對話。你已經為他算完八字。
@@ -179,7 +239,7 @@ export const chatWithMaster = async (
   `;
 
   const chat = genAI.chats.create({
-    model: "gemini-1.5-flash",
+    model: selectedModel,
     config: {
       systemInstruction: systemPrompt,
     },
