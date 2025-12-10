@@ -39,6 +39,12 @@ export const Header: React.FC<HeaderProps> = ({ mode, onNavClick, onReload }) =>
           >
             古籍考據
           </button>
+          <button
+            onClick={(e) => onNavClick(e, AnalysisMode.COMPATIBILITY)}
+            className={`transition-colors pb-1 border-b-2 ${mode === AnalysisMode.COMPATIBILITY ? 'text-mystic-gold border-mystic-gold font-bold' : 'border-transparent hover:text-mystic-gold'}`}
+          >
+            雙人合盤
+          </button>
         </nav>
       </div>
     </header>

@@ -65,21 +65,46 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                     </button>
                 </div>
 
-                <div className="flex justify-center gap-3 md:gap-8 mb-6 overflow-x-auto pb-2 relative z-10 px-2">
-                    <PillarCard label="年柱" stem={result.chart.year.stem} branch={result.chart.year.branch} />
-                    <PillarCard label="月柱" stem={result.chart.month.stem} branch={result.chart.month.branch} />
-                    <PillarCard label="日柱" stem={result.chart.day.stem} branch={result.chart.day.branch} />
-                    <PillarCard label="時柱" stem={result.chart.hour.stem} branch={result.chart.hour.branch} />
+                <div className="flex flex-col gap-8 mb-6 relative z-10 px-2">
+                    {/* Person A */}
+                    <div className={result.chart2 ? "border-b border-mystic-700/50 pb-6" : ""}>
+                        {result.chart2 && <h4 className="text-mystic-gold font-bold mb-3 text-sm ml-2">甲方 (Person A)</h4>}
+                        <div className="flex justify-center gap-3 md:gap-8 overflow-x-auto pb-2">
+                            <PillarCard label="年柱" stem={result.chart.year.stem} branch={result.chart.year.branch} />
+                            <PillarCard label="月柱" stem={result.chart.month.stem} branch={result.chart.month.branch} />
+                            <PillarCard label="日柱" stem={result.chart.day.stem} branch={result.chart.day.branch} />
+                            <PillarCard label="時柱" stem={result.chart.hour.stem} branch={result.chart.hour.branch} />
+                        </div>
+                    </div>
+
+                    {/* Person B (only if chart2 exists) */}
+                    {result.chart2 && (
+                        <div>
+                            <h4 className="text-mystic-gold font-bold mb-3 text-sm ml-2">乙方 (Person B)</h4>
+                            <div className="flex justify-center gap-3 md:gap-8 overflow-x-auto pb-2">
+                                <PillarCard label="年柱" stem={result.chart2.year.stem} branch={result.chart2.year.branch} />
+                                <PillarCard label="月柱" stem={result.chart2.month.stem} branch={result.chart2.month.branch} />
+                                <PillarCard label="日柱" stem={result.chart2.day.stem} branch={result.chart2.day.branch} />
+                                <PillarCard label="時柱" stem={result.chart2.hour.stem} branch={result.chart2.hour.branch} />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-center text-sm text-gray-400 mt-6 border-t border-mystic-700 pt-4 relative z-10">
                     <div>
                         <span className="block text-gray-500 mb-1 tracking-widest uppercase text-xs">日元 (Day Master)</span>
-                        <span className="text-2xl text-white font-calligraphy">{result.chart.me}</span>
+                        <div className="flex justify-center gap-4">
+                            <span className="text-2xl text-white font-calligraphy">{result.chart.me}</span>
+                            {result.chart2 && <span className="text-2xl text-white font-calligraphy opacity-70"> / {result.chart2.me}</span>}
+                        </div>
                     </div>
                     <div>
                         <span className="block text-gray-500 mb-1 tracking-widest uppercase text-xs">當前大運 (Current Luck)</span>
-                        <span className="text-2xl text-white font-calligraphy">{result.chart.currentDaYun}</span>
+                        <div className="flex justify-center gap-4">
+                            <span className="text-2xl text-white font-calligraphy">{result.chart.currentDaYun}</span>
+                            {result.chart2 && <span className="text-2xl text-white font-calligraphy opacity-70"> / {result.chart2.currentDaYun}</span>}
+                        </div>
                     </div>
                 </div>
             </section>

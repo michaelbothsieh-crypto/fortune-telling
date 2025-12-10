@@ -7,7 +7,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { AnalysisForm } from './components/AnalysisForm';
 import { ResultDisplay } from './components/ResultDisplay';
-import { Info, ScrollText, Compass, History } from 'lucide-react';
+import { Info, ScrollText, Compass, History, Heart } from 'lucide-react';
 import { AnalysisMode } from './types';
 import MethodologyModal from './components/MethodologyModal';
 
@@ -42,11 +42,13 @@ const App: React.FC = () => {
               {mode === AnalysisMode.BASIC && '批八字 · 斷吉凶 · 決疑難'}
               {mode === AnalysisMode.YEARLY && '乙巳丙午 · 流年禍福 · 先知'}
               {mode === AnalysisMode.SCHOLARLY && '窮通寶鑑 · 滴天髓 · 考據'}
+              {mode === AnalysisMode.COMPATIBILITY && '八字合婚 · 天作之合 · 緣分'}
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto leading-loose text-lg">
               {mode === AnalysisMode.BASIC && '本站採正宗子平法，融合《滴天髓》之哲理、《窮通寶鑑》之調候。傳承三十年實務經驗，為您精確排盤，並以徐樂吾大師風格進行深度剖析。'}
               {mode === AnalysisMode.YEARLY && '針對 2025 乙巳年與 2026 丙午年進行深度流年分析。運用梁湘潤流年流月秘法，預判事業、財運、健康之關鍵轉折。'}
               {mode === AnalysisMode.SCHOLARLY && '專為命理研究者設計。大師將引用《三命通會》、《神峰通考》原文，探討格局高低，考證神煞真偽，還原八字學術原貌。'}
+              {mode === AnalysisMode.COMPATIBILITY && '深度分析兩人命盤之契合度。從五行互補、日主強弱、刑沖會合等角度，評估感情穩定度與相處模式。'}
             </p>
           </section>
         )}
@@ -59,12 +61,14 @@ const App: React.FC = () => {
               {mode === AnalysisMode.BASIC && <ScrollText size={100} />}
               {mode === AnalysisMode.YEARLY && <Compass size={100} />}
               {mode === AnalysisMode.SCHOLARLY && <History size={100} />}
+              {mode === AnalysisMode.COMPATIBILITY && <Heart size={100} />}
             </div>
             <h3 className="text-mystic-gold font-bold mb-4 flex items-center gap-2">
               <Info size={18} />
               {mode === AnalysisMode.BASIC && '本站論命七大步驟'}
               {mode === AnalysisMode.YEARLY && '流年推算重點'}
               {mode === AnalysisMode.SCHOLARLY && '古法考據流程'}
+              {mode === AnalysisMode.COMPATIBILITY && '八字合婚重點'}
             </h3>
 
             <div className="mb-6 p-4 bg-black/20 rounded-lg text-xs text-gray-400 border border-white/5">
@@ -107,6 +111,16 @@ const App: React.FC = () => {
                   <li><span className="text-gray-300 font-bold">詩訣驗證</span>：引用古詩訣印證吉凶</li>
                   <li><span className="text-gray-300 font-bold">特殊格局</span>：檢查是否為專旺或從格</li>
                   <li><span className="text-gray-300 font-bold">納音五行</span>：輔以古法納音論命</li>
+                </>
+              )}
+              {mode === AnalysisMode.COMPATIBILITY && (
+                <>
+                  <li><span className="text-gray-300 font-bold">日主適配</span>：分析甲乙雙方日元屬性</li>
+                  <li><span className="text-gray-300 font-bold">五行喜忌</span>：檢查雙方五行是否互補</li>
+                  <li><span className="text-gray-300 font-bold">地支刑沖</span>：察看配偶宮是否有沖合</li>
+                  <li><span className="text-gray-300 font-bold">性格互動</span>：預判相處模式與氣氛</li>
+                  <li><span className="text-gray-300 font-bold">衝突熱點</span>：提點可能吵架之原因</li>
+                  <li><span className="text-gray-300 font-bold">維繫建議</span>：給予經營關係之具體方針</li>
                 </>
               )}
             </ol>
