@@ -45,7 +45,18 @@ const App: React.FC = () => {
               {mode === AnalysisMode.COMPATIBILITY && '八字合婚 · 天作之合 · 緣分'}
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto leading-loose text-lg">
-              {mode === AnalysisMode.BASIC && '本站採正宗子平法，融合《滴天髓》之哲理、《窮通寶鑑》之調候。傳承三十年實務經驗，為您精確排盤，並以徐樂吾大師風格進行深度剖析。'}
+              {mode === AnalysisMode.BASIC && (
+                <span>
+                  本站採正宗子平法，融合《滴天髓》之哲理、《窮通寶鑑》之調候。傳承三十年實務經驗，為您精確排盤，並以徐樂吾大師風格進行深度剖析。
+                  <br />
+                  <span
+                    className="inline-block mt-2 text-mystic-gold hover:text-white cursor-pointer border-b border-mystic-gold hover:border-white transition-colors"
+                    onClick={(e) => handleNavClick(e, AnalysisMode.COMPATIBILITY)}
+                  >
+                    👉 想測算兩人緣分？點此切換至「雙人合盤」模式
+                  </span>
+                </span>
+              )}
               {mode === AnalysisMode.YEARLY && '針對 2025 乙巳年與 2026 丙午年進行深度流年分析。運用梁湘潤流年流月秘法，預判事業、財運、健康之關鍵轉折。'}
               {mode === AnalysisMode.SCHOLARLY && '專為命理研究者設計。大師將引用《三命通會》、《神峰通考》原文，探討格局高低，考證神煞真偽，還原八字學術原貌。'}
               {mode === AnalysisMode.COMPATIBILITY && '深度分析兩人命盤之契合度。從五行互補、日主強弱、刑沖會合等角度，評估感情穩定度與相處模式。'}
