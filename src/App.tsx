@@ -66,6 +66,18 @@ const App: React.FC = () => {
               {mode === AnalysisMode.YEARLY && '流年推算重點'}
               {mode === AnalysisMode.SCHOLARLY && '古法考據流程'}
             </h3>
+
+            <div className="mb-6 p-4 bg-black/20 rounded-lg text-xs text-gray-400 border border-white/5">
+              <span className="text-mystic-gold font-bold block mb-1">💡 為什麼算出來的結果會不同？</span>
+              此為三種完全不同的演算法，針對不同需求設計：
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li><span className="text-gray-300">八字論命 (Basic)</span>：看「一生總體潛力」。(如：你是一輛法拉利)</li>
+                <li><span className="text-gray-300">流年運勢 (Yearly)</span>：看「這兩年的路況」。(如：但今年遇到爛泥路)</li>
+                <li><span className="text-gray-300">古籍考據 (Scholarly)</span>：看「古書如何定義你」。(如：古書歸類為千里馬)</li>
+              </ul>
+              <div className="mt-2 text-gray-500 italic">因此，可能出現「命很好 (Basic高分) 但流年很差 (Yearly低分)」的情況，屬正常現象。</div>
+            </div>
+
             <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-400 list-decimal list-inside">
               {mode === AnalysisMode.BASIC && (
                 <>

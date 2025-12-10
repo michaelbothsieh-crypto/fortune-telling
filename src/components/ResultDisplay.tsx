@@ -28,7 +28,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 relative z-10 gap-4">
                     <div className="flex items-center space-x-2">
                         <ScrollText className="text-mystic-gold" size={24} />
-                        <h3 className="text-xl font-bold text-mystic-gold">八字原局</h3>
+                        <h3 className="text-xl font-bold text-mystic-gold whitespace-nowrap">八字原局</h3>
                     </div>
                     <div className="bg-mystic-900/80 border border-mystic-700 px-4 py-2 rounded-lg text-sm text-gray-300 italic border-l-4 border-l-mystic-accent flex items-center gap-4">
                         <div className="flex-1">
