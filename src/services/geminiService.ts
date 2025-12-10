@@ -15,7 +15,9 @@ const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
     const candidates = models.filter((name: string) =>
       name.includes('gemini') &&
       !name.includes('vision') &&
-      !name.includes('embedding')
+      !name.includes('embedding') &&
+      !name.includes('tts') &&    // Exclude Text-to-Speech only models
+      !name.includes('audio')     // Exclude Audio-focused models if they don't support text
     );
 
     // Sort by Heuristic
@@ -65,18 +67,21 @@ const executeWithRetry = async <T>(
       console.warn(`[Gemini Service] Model ${model} failed.`, error);
       lastError = error;
 
-      // Only retry on specific errors (404 Not Found, 429 Quota Exceeded, 503 Overloaded)
-      const isRetryable =
-        error.message?.includes("404") ||
-        error.message?.includes("not found") ||
-        error.message?.includes("429") ||
-        error.message?.includes("quota") ||
-        error.message?.includes("503");
+      console.warn(`[Gemini Service] Model ${model} failed.`, error);
+      lastError = error;
 
-      if (!isRetryable) {
-        throw error; // Propagate critical errors immediately
+      // User requested: "If error received, skip to next model"
+      // We explicitly allow 400 (Invalid Argument) to trigger a retry/skip.
+      // In fact, we should basically continue on almost any error except maybe auth failure if we want to be super resilient,
+      // but let's stick to the user's "skip to next" instruction.
+      const isCriticalError = error.message?.includes("API key not valid") || error.message?.includes("PERMISSION_DENIED");
+
+      if (isCriticalError) {
+        throw error; // Stop if API key is wrong
       }
-      // Otherwise loop to next model
+
+      // Continue to next model for 400, 404, 429, 503, etc.
+      continue;
     }
   }
   throw lastError;
