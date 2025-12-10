@@ -95,7 +95,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                             h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-red-900 mt-10 mb-6 font-calligraphy border-b border-red-800/20 pb-2 text-center" {...props} />,
                             h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-mystic-900 mt-8 mb-4 font-calligraphy border-l-4 border-mystic-accent pl-3" {...props} />,
                             h3: ({ node, ...props }) => <h3 className="text-lg font-bold text-gray-800 mt-6 mb-2" {...props} />,
-                            strong: ({ node, ...props }) => <strong className="text-red-900 font-bold mx-1" {...props} />,
+                            strong: ({ node, ...props }) => <strong className="text-red-700 font-bold mx-1 bg-red-50 px-1 rounded border-b-2 border-red-200" {...props} />,
                             ul: ({ node, ...props }) => <ul className="list-disc pl-5 space-y-2 mb-4 text-gray-700 bg-gray-50/50 p-4 rounded-lg" {...props} />,
                             li: ({ node, ...props }) => <li className="pl-1" {...props} />,
                             p: ({ node, ...props }) => <p className="mb-4 text-justify text-gray-700 tracking-wide" {...props} />,

@@ -9,13 +9,21 @@ import { AnalysisForm } from './components/AnalysisForm';
 import { ResultDisplay } from './components/ResultDisplay';
 import { Info, ScrollText, Compass, History } from 'lucide-react';
 import { AnalysisMode } from './types';
-import { MethodologyModal } from './components/MethodologyModal';
+import MethodologyModal from './components/MethodologyModal';
 
 const App: React.FC = () => {
   const {
     input, setInput, apiKey, setApiKey, mode, loading, result, error,
     handleNavClick, handleSubmit, resetResult
   } = useFortuneTelling();
+
+  const loadingRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (loading && loadingRef.current) {
+      loadingRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [loading]);
 
   const [isMethodologyOpen, setIsMethodologyOpen] = React.useState(false);
 
@@ -109,7 +117,11 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {loading && <LoadingView />}
+        {loading && (
+          <div ref={loadingRef}>
+            <LoadingView />
+          </div>
+        )}
 
         {result && (
           <ResultDisplay
