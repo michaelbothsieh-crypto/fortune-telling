@@ -42,16 +42,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
   };
 
   return (
-    <div className="bg-mystic-800 rounded-xl border border-mystic-700 shadow-2xl overflow-hidden flex flex-col h-[600px]">
-      <div className="p-4 border-b border-mystic-700 bg-mystic-900/50 flex items-center space-x-2">
+    <div className={`bg-mystic-800 rounded-xl border border-mystic-700 shadow-2xl overflow-hidden flex flex-col h-[600px] print:h-auto print:shadow-none print:border-none ${history.length === 0 ? 'print:hidden' : ''} chat-interface`}>
+      <div className="p-4 border-b border-mystic-700 bg-mystic-900/50 flex items-center space-x-2 print:border-b-2 print:border-gray-200">
         <Sparkles className="text-mystic-accent" size={20} />
-        <h3 className="font-bold text-gray-200">向大師追問</h3>
-        <span className="text-xs text-gray-500 ml-auto">針對本次命盤深入探討</span>
+        <h3 className="font-bold text-gray-200 print:text-black">向大師追問</h3>
+        <span className="text-xs text-gray-500 ml-auto print:hidden">針對本次命盤深入探討</span>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-mystic-900/30 scroll-custom">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-mystic-900/30 scroll-custom print:bg-white print:overflow-visible">
         {history.length === 0 && (
-          <div className="text-center text-gray-500 py-10 opacity-70">
+          <div className="text-center text-gray-500 py-10 opacity-70 print:hidden">
             <p>您可以詢問：</p>
             <ul className="text-sm mt-2 space-y-1">
               <li>「我的適合做什麼行業？」</li>
@@ -62,13 +62,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
         )}
 
         {history.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-lg p-3 ${msg.role === 'user'
-              ? 'bg-mystic-700 text-white rounded-br-none'
-              : 'bg-[#fdfbf7] text-gray-800 rounded-bl-none border-l-4 border-mystic-gold'
+          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} print:block print:mb-4`}>
+            <div className={`max-w-[85%] rounded-lg p-3 print:max-w-full print:p-0 print:bg-transparent print:text-black ${msg.role === 'user'
+              ? 'bg-mystic-700 text-white rounded-br-none print:font-bold'
+              : 'bg-[#fdfbf7] text-gray-800 rounded-bl-none border-l-4 border-mystic-gold print:border-none'
               }`}>
+              {msg.role === 'user' && <span className="hidden print:inline font-bold mr-2">問：</span>}
+              {msg.role === 'model' && <span className="hidden print:inline font-bold mr-2">答：</span>}
+
               {msg.role === 'model' ? (
-                <div className="prose prose-sm max-w-none">
+                <div className="prose prose-sm max-w-none print:prose-stone">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
               ) : (
@@ -79,7 +82,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
         ))}
 
         {isLoading && (
-          <div className="flex justify-start">
+          <div className="flex justify-start print:hidden">
             <div className="bg-[#fdfbf7] p-3 rounded-lg rounded-bl-none border-l-4 border-mystic-gold flex items-center space-x-2">
               <div className="w-2 h-2 bg-mystic-gold rounded-full animate-bounce"></div>
               <div className="w-2 h-2 bg-mystic-gold rounded-full animate-bounce delay-75"></div>
@@ -89,14 +92,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-4 bg-mystic-800 border-t border-mystic-700 flex space-x-2">
-        <input
-          type="text"
+      <form onSubmit={handleSend} className="p-4 bg-mystic-800 border-t border-mystic-700 flex space-x-2 print:hidden">
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="請輸入您的問題..."
           disabled={isLoading}
-          className="flex-1 bg-mystic-900 border border-mystic-600 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none"
+          rows={1}
+          className="flex-1 bg-mystic-900 border border-mystic-600 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none resize-none min-h-[42px] max-h-[120px]"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend(e);
+            }
+          }}
         />
         <button
           type="submit"

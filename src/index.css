@@ -6,7 +6,7 @@
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out;
   }
-  
+
   .animate-fade-in-up {
     animation: fadeInUp 0.5s ease-out;
   }
@@ -17,13 +17,25 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media print {
@@ -35,12 +47,17 @@
   }
 
   /* Hide non-essential elements for print */
-  header, footer, .chat-interface, button, .animate-pulse {
+  header,
+  footer,
+  button,
+  .animate-pulse {
     display: none !important;
   }
 
   /* Ensure content is visible */
-  .result-display, .chart-section, .analysis-content {
+  .result-display,
+  .chart-section,
+  .analysis-content {
     display: block !important;
     break-inside: avoid;
   }
