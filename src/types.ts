@@ -30,11 +30,23 @@ export interface BaZiChart {
   me: string;
 }
 
+export interface RadarData {
+  career: number;   // 事業
+  wealth: number;   // 財運
+  love: number;     // 感情
+  health: number;   // 健康
+  social: number;   // 人際
+  family: number;   // 家庭
+}
+
 export interface AnalysisResponse {
   chart: BaZiChart;
   classical: string; // 徐樂吾風格古文
   modern: string;    // 白話文解釋
   summary: string;   // 一語道破總結
+  score: number;     // 整體運勢評分 (0-100)
+  radar: RadarData;  // 六維雷達圖數據
+  usedModel?: string; // 使用的模型名稱
 }
 
 export interface UserInput {

@@ -4,6 +4,9 @@ import { BookOpen, ScrollText, MessageCircle, Feather } from 'lucide-react';
 import { AnalysisResponse, AnalysisMode } from '../types';
 import { PillarCard } from './PillarCard';
 import { ChatInterface } from './ChatInterface';
+import { CircularScore } from './CircularScore';
+import { RadarChart } from './RadarChart';
+import { Download } from 'lucide-react';
 
 interface ResultDisplayProps {
     result: AnalysisResponse;
@@ -27,9 +30,39 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                         <ScrollText className="text-mystic-gold" size={24} />
                         <h3 className="text-xl font-bold text-mystic-gold">八字原局</h3>
                     </div>
-                    <div className="bg-mystic-900/80 border border-mystic-700 px-4 py-2 rounded-lg text-sm text-gray-300 italic border-l-4 border-l-mystic-accent">
-                        大師總評：{result.summary}
+                    <div className="bg-mystic-900/80 border border-mystic-700 px-4 py-2 rounded-lg text-sm text-gray-300 italic border-l-4 border-l-mystic-accent flex items-center gap-4">
+                        <div className="flex-1">
+                            大師總評：{result.summary}
+                        </div>
+                        {result.score !== undefined && (
+                            <div className="shrink-0 flex items-center gap-4">
+                                <div className="hidden md:block">
+                                    {result.radar && <RadarChart data={result.radar} />}
+                                </div>
+                                <CircularScore score={result.score} />
+                            </div>
+                        )}
                     </div>
+                </div>
+
+                {/* Mobile Radar (visible only on small screens) */}
+                {result.radar && (
+                    <div className="md:hidden flex justify-center mb-6 relative z-10">
+                        <div className="bg-mystic-900/50 p-4 rounded-xl border border-mystic-700/50">
+                            <RadarChart data={result.radar} />
+                        </div>
+                    </div>
+                )}
+
+                <div className="absolute top-4 right-4 z-20">
+                    <button
+                        onClick={() => window.print()}
+                        className="flex items-center gap-2 px-3 py-1 bg-mystic-gold/20 hover:bg-mystic-gold/40 text-mystic-gold rounded-full text-sm transition-colors print:hidden"
+                        title="匯出報告 / 儲存為 PDF"
+                    >
+                        <Download size={16} />
+                        匯出報告
+                    </button>
                 </div>
 
                 <div className="flex justify-center gap-3 md:gap-8 mb-6 overflow-x-auto pb-2 relative z-10 px-2">
@@ -119,13 +152,22 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
             {/* Chat Interface */}
             <ChatInterface chartContext={result} apiKey={apiKey} />
 
-            <div className="text-center pt-8">
+            {/* Chat Interface */}
+            <ChatInterface chartContext={result} apiKey={apiKey} />
+
+            <div className="text-center pt-8 pb-4">
                 <button
                     onClick={onReset}
-                    className="text-gray-500 hover:text-white underline underline-offset-4"
+                    className="text-gray-500 hover:text-white underline underline-offset-4 mb-4"
                 >
                     重新排盤
                 </button>
+
+                {result.usedModel && (
+                    <div className="text-xs text-mystic-700 font-mono opacity-50">
+                        AI Model: {result.usedModel}
+                    </div>
+                )}
             </div>
         </div>
     );
