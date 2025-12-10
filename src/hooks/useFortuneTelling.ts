@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserInput, Gender, AnalysisResponse, CalendarType, AnalysisMode } from '../types';
-import { analyzeBaZi } from '../services/geminiService';
+
 
 export const useFortuneTelling = () => {
     const [input, setInput] = useState<UserInput>({

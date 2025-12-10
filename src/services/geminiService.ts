@@ -132,18 +132,7 @@ export const analyzeBaZi = async (
         },
         nullable: true,
       },
-      chart2: {
-        type: Type.OBJECT,
-        properties: {
-          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          currentDaYun: { type: Type.STRING },
-          me: { type: Type.STRING },
-        },
-        nullable: true,
-      },
+
       classical: {
         type: Type.STRING,
         description: "徐樂吾風格的專業命理分析（Markdown格式）。包含原局強弱、格局、病藥、調候之古文論斷。",
@@ -394,7 +383,7 @@ export const analyzeCompatibility = async (
     請進行八字合婚分析。
   `;
 
-  return await executeWithRetry(async (model) => {
+  const { result } = await executeWithRetry(async (model) => {
     const chat = genAI.chats.create({
       model: model,
       config: {
@@ -411,6 +400,8 @@ export const analyzeCompatibility = async (
     }
     throw new Error("大師正在沉思中，請稍後再試...");
   }, prioritizedModels);
+
+  return result;
 };
 
 export const chatWithMaster = async (
