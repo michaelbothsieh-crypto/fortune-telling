@@ -13,7 +13,7 @@ import MethodologyModal from './components/MethodologyModal';
 
 const App: React.FC = () => {
   const {
-    input, setInput, apiKey, setApiKey, mode, loading, result, error,
+    input, setInput, secondInput, setSecondInput, apiKey, setApiKey, mode, loading, result, error,
     handleNavClick, handleSubmit, resetResult
   } = useFortuneTelling();
 
@@ -115,6 +115,8 @@ const App: React.FC = () => {
           <AnalysisForm
             input={input}
             setInput={setInput}
+            secondInput={secondInput}
+            setSecondInput={setSecondInput}
             handleSubmit={handleSubmit}
             loading={loading}
             mode={mode}

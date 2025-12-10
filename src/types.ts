@@ -13,6 +13,7 @@ export enum AnalysisMode {
   BASIC = '八字正宗',
   YEARLY = '流年運勢',
   SCHOLARLY = '古籍考據',
+  COMPATIBILITY = '雙人合盤',
 }
 
 export interface Pillar {
@@ -41,6 +42,7 @@ export interface RadarData {
 
 export interface AnalysisResponse {
   chart: BaZiChart;
+  chart2?: BaZiChart; // Second person's chart for comparison
   classical: string; // 徐樂吾風格古文
   modern: string;    // 白話文解釋
   summary: string;   // 一語道破總結
@@ -55,6 +57,7 @@ export interface UserInput {
   gender: Gender;
   calendarType: CalendarType;
   isLeapMonth: boolean;
+  isTimeUnknown?: boolean;
 }
 
 export interface ChatMessage {

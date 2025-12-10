@@ -112,25 +112,37 @@ export const analyzeBaZi = async (
         type: Type.OBJECT,
         description: "精準計算的四柱八字。必須依據天文曆法精確換算節氣。",
         properties: {
-          year: {
-            type: Type.OBJECT,
-            properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING } },
-          },
-          month: {
-            type: Type.OBJECT,
-            properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING } },
-          },
-          day: {
-            type: Type.OBJECT,
-            properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING } },
-          },
-          hour: {
-            type: Type.OBJECT,
-            properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING } },
-          },
+          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
           currentDaYun: { type: Type.STRING, description: "當前大運" },
           me: { type: Type.STRING, description: "日元" },
         },
+      },
+      chart2: {
+        type: Type.OBJECT,
+        properties: {
+          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          currentDaYun: { type: Type.STRING },
+          me: { type: Type.STRING },
+        },
+        nullable: true,
+      },
+      chart2: {
+        type: Type.OBJECT,
+        properties: {
+          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          currentDaYun: { type: Type.STRING },
+          me: { type: Type.STRING },
+        },
+        nullable: true,
       },
       classical: {
         type: Type.STRING,
@@ -190,14 +202,18 @@ export const analyzeBaZi = async (
        - 給出具體的趨吉避凶建議。
     `;
   } else if (mode === AnalysisMode.SCHOLARLY) {
-    // ... scholarly instructions ...
     specificInstruction = `
     【特殊任務：古籍考據模式】
     請化身為考據學家，將重點放在學術探討。
     **雷達圖 (radar) 重點**：依據格局高低與五行強弱來進行學術性量化。
     
     1. **classical (古文)**：
-    // ...
+       - 必須大量引用《三命通會》、《滴天髓》、《淵海子平》原文。
+       - 討論此命造的格局高低成敗（如：「此格近似...，惜...」）。
+       - 驗證古書中的詩訣（如：「詩云：...」）。
+    2. **modern (白話)**：
+       - 解釋上述引用的古文含義。
+       - 說明此命造在古代會是什麼成就，在現代又對應什麼社會地位。
     `;
   } else {
     // Basic mode instructions
@@ -209,6 +225,24 @@ export const analyzeBaZi = async (
     `;
   }
 
+  // Handle Unknown Time Logic
+  let timeInstruction = "";
+  if (input.isTimeUnknown) {
+    timeInstruction = `
+    【重要：時辰不詳處理】
+    命主不知道出生時辰。請嚴格遵守以下規則：
+    1. **必須在回應的開頭（classical 或 summary 欄位）顯眼處標註**：「註：因時辰不詳，本分析基於年月日三柱推算，準確率約七成。晚景與子女運勢欠奉，僅供參考。」
+    2. **僅使用三柱（年、月、日）進行推算**。
+    3. **忽略所有需要時柱才能判斷的項目**（如子女宮、晚年運、時上偏財格等）。
+    4. 若遇到必須有時辰才能決定的格局（如專旺格），請選擇最主流的可能性並在解釋中說明。
+    `;
+  } else {
+    timeInstruction = `
+    【重要：曆法換算】
+    若命主提供的是「農曆」日期，你必須先運用你的曆法知識，將其轉換為對應年份的「國曆（西元）」日期，並以此推算真太陽時的節氣，以決定正確的月柱與年柱分界（立春）。
+    `;
+  }
+
   const systemInstruction = `
     【身分設定】
     你是一位鑽研八字三十年的命理宗師，師承《滴天髓》、《子平真詮》及近代大師徐樂吾、梁湘潤。
@@ -216,8 +250,7 @@ export const analyzeBaZi = async (
     【核心任務】
     請對命主進行八字論命，嚴格遵守下列流程，並將輸出分為「專業古文」與「白話解讀」兩部分。
     
-    【重要：曆法換算】
-    若命主提供的是「農曆」日期，你必須先運用你的曆法知識，將其轉換為對應年份的「國曆（西元）」日期，並以此推算真太陽時的節氣，以決定正確的月柱與年柱分界（立春）。
+    ${timeInstruction}
 
     ${specificInstruction}
 
@@ -248,11 +281,11 @@ export const analyzeBaZi = async (
     分析模式：${mode}
     輸入日期類型：${input.calendarType} ${input.calendarType === CalendarType.LUNAR && input.isLeapMonth ? '(閏月)' : ''}
     輸入日期：${input.birthDate}
-    出生時間：${input.birthTime}
+    出生時間：${input.isTimeUnknown ? '時辰不詳 (Unknown)' : input.birthTime}
     性別：${input.gender}
 
     請注意：若為農曆，請務必精準換算為對應的太陽曆節氣來排八字。
-    請開始排盤並論命。
+    ${input.isTimeUnknown ? '注意：時辰不明，請依三柱論命。' : '請開始排盤並論命。'}
   `;
 
   // Use Execute with Retry Logic
@@ -277,6 +310,107 @@ export const analyzeBaZi = async (
 
   result.usedModel = model;
   return result;
+};
+
+
+export const analyzeCompatibility = async (
+  input1: UserInput,
+  input2: UserInput,
+  apiKey?: string
+): Promise<AnalysisResponse> => {
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) {
+    throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
+
+  const systemInstruction = `
+    【身分設定】
+    你是一位精通《三命通會》、《合婚寶鑑》的八字合婚專家。
+    
+    【核心任務】
+    請對兩位命主（甲方、乙方）進行「八字合盤（Syastry）」，並依照 schema 回傳 JSON。
+
+    【分析邏輯】
+    1. **排盤**：分別排出甲、乙雙方的八字。若時辰不詳 (isTimeUnknown=true)，請僅用三柱，並在其部分註明準確度折損。
+    2. **日主適配**：分析雙方日元屬性（如：強金配弱木）、五行喜忌是否互補。
+    3. **刑沖會合**：檢查年柱（根基）、日支（配偶宮）是否有六合、三合（大吉）或六沖、刑害（需注意）。
+    4. **評分機制**：
+       - score (0-100)：綜合契合度。
+       - radar (六維)：
+         - career: 事業互助指數
+         - wealth: 財運互旺指數
+         - love: 情感契合指數
+         - health: 健康互補指數
+         - social: 溝通默契指數
+         - family: 價值觀/家庭指數
+
+    【輸出風格】
+    - **summary**: 一句話形容這段關係（例如：「天作之合，互補性極強」或「需多磨合，個性南轅北轍」）。
+    - **classical**: 引用古籍合婚口訣（如：「金土夫妻好姻緣...」），並解釋其在兩人命盤的應驗。
+    - **modern**: 
+      1. **性格互動**：兩個人在一起會是什麼氣氛？
+      2. **衝突點**：最容易吵架的原因是什麼？
+      3. **經營建議**：如何讓關係更長久？
+  `;
+
+  // Re-define schema inside this scope if specific overrides needed, 
+  // but we are re-using the dynamically defined one from analyzeBaZi?
+  // Actually analyzeBaZi defined it locally. We need to copy/define it here or move it out.
+  // For simplicity, let's redefine the schema partially or call a shared helper?
+  // No, let's just re-define the essential schema here to avoid refactoring the whole file yet.
+
+  const scoreDesc = "針對兩人契合度、五行互補性的綜合評分 (0-100)。";
+
+  const compatibilitySchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      chart: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
+      chart2: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
+      classical: { type: Type.STRING, description: "合婚古文分析" },
+      modern: { type: Type.STRING, description: "現代相處建議" },
+      summary: { type: Type.STRING, description: "關係一句話總結" },
+      score: { type: Type.NUMBER, description: scoreDesc },
+      radar: { type: Type.OBJECT, properties: { career: { type: Type.NUMBER }, wealth: { type: Type.NUMBER }, love: { type: Type.NUMBER }, health: { type: Type.NUMBER }, social: { type: Type.NUMBER }, family: { type: Type.NUMBER } }, required: ["career", "wealth", "love", "health", "social", "family"] },
+    },
+    required: ["chart", "chart2", "classical", "modern", "summary", "score", "radar"],
+  };
+
+  const userPrompt = `
+    【甲方資料 (Person A)】
+    日期類型：${input1.calendarType} ${input1.isLeapMonth ? '(閏月)' : ''}
+    出生日期：${input1.birthDate}
+    出生時間：${input1.isTimeUnknown ? '時辰不詳' : input1.birthTime}
+    性別：${input1.gender}
+
+    【乙方資料 (Person B)】
+    日期類型：${input2.calendarType} ${input2.isLeapMonth ? '(閏月)' : ''}
+    出生日期：${input2.birthDate}
+    出生時間：${input2.isTimeUnknown ? '時辰不詳' : input2.birthTime}
+    性別：${input2.gender}
+
+    請進行八字合婚分析。
+  `;
+
+  return await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model: model,
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: compatibilitySchema,
+      },
+    });
+
+    const response = await chat.sendMessage({ message: userPrompt });
+
+    if (response.text) {
+      return JSON.parse(response.text) as AnalysisResponse;
+    }
+    throw new Error("大師正在沉思中，請稍後再試...");
+  }, prioritizedModels);
 };
 
 export const chatWithMaster = async (
