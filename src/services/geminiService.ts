@@ -173,9 +173,14 @@ export const analyzeBaZi = async (
           },
           required: ["title", "content"]
         }
+      },
+      suggestedQuestions: {
+        type: Type.ARRAY,
+        description: "3個使用者可能會想問的追問 (針對最急迫、最容易改善的運勢)",
+        items: { type: Type.STRING }
       }
     },
-    required: ["chart", "classical", "modern", "summary", "score", "radar", "luckTips"],
+    required: ["chart", "classical", "modern", "summary", "score", "radar", "luckTips", "suggestedQuestions"],
   };
 
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
@@ -189,6 +194,7 @@ export const analyzeBaZi = async (
     **評分 (score) 重點**：請針對「2026 流年運勢的吉凶」進行評分。分數越高代表流年越順遂，分數低則代表需保守防禦。
     **雷達圖 (radar) 重點**：請針對「2026 流年運勢的各面向」來評分。
     **luckTips (開運錦囊)**：針對2026流年煞氣或不足之處，提供三個化解小撇步（例如：配戴紅繩、多往南方走）。
+    **suggestedQuestions (建議提問)**：從使用者的角度，提出三個針對「當下最急迫改善」的追問（例如：「我今年要注意什麼血光之災？」、「如何提升今年的偏財運？」）。
     
     1. **classical (古文)**：...
     `;
@@ -199,11 +205,13 @@ export const analyzeBaZi = async (
     **評分 (score) 重點**：請針對「本命格局的高低層次」進行評分。
     **雷達圖 (radar) 重點**：請針對「本命（原局）的潛質」來評分。
     **luckTips (開運錦囊)**：提供古法補運之建議（例如：祭拜某神祇、閱讀某經典）。
+    **suggestedQuestions (建議提問)**：提出三個專業的學術追問（例如：「此造是用神無力還是格局被破？」）。
     `;
   } else {
     specificInstruction = `
     ...
     **luckTips (開運錦囊)**：針對八字五行缺憾提供補運建議（例如：缺水者多穿黑衣、佩戴黑曜石）。
+    **suggestedQuestions (建議提問)**：提出三個命主最想知道、且「最容易執行」的改運追問（例如：「我適合養貓還是養狗來旺運？」、「辦公桌要放什麼能防小人？」）。
     `;
   }
 

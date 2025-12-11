@@ -22,23 +22,25 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
     }
   }, [history, isLoading]);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (message: string) => {
+    if (!message.trim() || isLoading) return;
 
-    const userMsg = input.trim();
-    setInput('');
-    setHistory(prev => [...prev, { role: 'user', content: userMsg }]);
+    setHistory(prev => [...prev, { role: 'user', content: message }]);
     setIsLoading(true);
 
     try {
-      const response = await chatWithMaster(history, userMsg, chartContext, apiKey);
+      const response = await chatWithMaster(history, message, chartContext, apiKey);
       setHistory(prev => [...prev, { role: 'model', content: response }]);
     } catch (error) {
       setHistory(prev => [...prev, { role: 'model', content: "大師暫時去休息了，請稍後再問。" }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessage(input.trim());
   };
 
   return (
@@ -52,12 +54,37 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-mystic-900/30 scroll-custom print:bg-white print:overflow-visible">
         {history.length === 0 && (
           <div className="text-center text-gray-500 py-10 opacity-70 print:hidden">
-            <p>您可以詢問：</p>
-            <ul className="text-sm mt-2 space-y-1">
-              <li>「我的適合做什麼行業？」</li>
-              <li>「2026年要注意什麼細節？」</li>
-              <li>「我的感情運勢如何？」</li>
-            </ul>
+            <p className="mb-4">您可以詢問以下問題，或自行輸入：</p>
+
+            {chartContext.suggestedQuestions && chartContext.suggestedQuestions.length > 0 ? (
+              <div className="flex flex-col gap-3 max-w-sm mx-auto">
+                {chartContext.suggestedQuestions.map((q, idx) => (
+                  <button
+                    key={idx}
+                      // but state update is async. Better to refactor or just set input.
+                      // For UX, clicking usually populates input or sends immediately.
+                      // Let's make it auto-send.
+                      // Since handleSend relies on `input` state, we need a separate trigger function or pass msg to function.
+                      // I will refactor handleSend to accept optional overrides.
+                      // But for now, let's just populate input + auto-focus, or use a helper.
+                      // Actually, I can just call a send helper.
+                    }}
+                    // Correction: I can't easily call handleSend with event if I want to pass string.
+                    // Let's create `sendMessage(text)` function.
+                    className="p-3 bg-mystic-700/50 hover:bg-mystic-gold hover:text-mystic-900 border border-mystic-600 rounded-lg text-sm transition-all text-left flex items-center gap-2 group"
+                  >
+                    <Sparkles size={16} className="text-mystic-gold group-hover:text-mystic-900" />
+                    {q}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <ul className="text-sm mt-2 space-y-1">
+                <li>「我的適合做什麼行業？」</li>
+                <li>「2026年要注意什麼細節？」</li>
+                <li>「我的感情運勢如何？」</li>
+              </ul>
+            )}
           </div>
         )}
 
@@ -115,6 +142,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
           <Send size={20} />
         </button>
       </form>
-    </div>
+    </div >
   );
 };
