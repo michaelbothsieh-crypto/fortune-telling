@@ -112,10 +112,10 @@ export const analyzeBaZi = async (
         type: Type.OBJECT,
         description: "精準計算的四柱八字。必須依據天文曆法精確換算節氣。",
         properties: {
-          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
           currentDaYun: { type: Type.STRING, description: "當前大運" },
           me: { type: Type.STRING, description: "日元" },
         },
@@ -123,10 +123,10 @@ export const analyzeBaZi = async (
       chart2: {
         type: Type.OBJECT,
         properties: {
-          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
-          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } },
+          year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+          hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } } },
           currentDaYun: { type: Type.STRING },
           me: { type: Type.STRING },
         },
@@ -161,6 +161,18 @@ export const analyzeBaZi = async (
           family: { type: Type.NUMBER, description: "家庭/印星食傷狀態" },
         },
         required: ["career", "wealth", "love", "health", "social", "family"],
+      },
+      fiveElements: {
+        type: Type.OBJECT,
+        description: "五行能量百分比總和需為100 (gold, wood, water, fire, earth)",
+        properties: {
+          gold: { type: Type.NUMBER },
+          wood: { type: Type.NUMBER },
+          water: { type: Type.NUMBER },
+          fire: { type: Type.NUMBER },
+          earth: { type: Type.NUMBER },
+        },
+        required: ["gold", "wood", "water", "fire", "earth"],
       },
       luckTips: {
         type: Type.ARRAY,

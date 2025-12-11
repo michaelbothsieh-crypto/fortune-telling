@@ -15,7 +15,9 @@ interface ResultDisplayProps {
     apiKey: string;
 }
 
+import { FiveElementBar } from './FiveElementBar';
 import html2pdf from 'html2pdf.js';
+// ... types ...
 
 // ... (ResultDisplayProps definition)
 
@@ -98,10 +100,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                     <div className={result.chart2 ? "border-b border-mystic-700/50 pb-6" : ""}>
                         {result.chart2 && <h4 className="text-mystic-gold font-bold mb-3 text-sm ml-2">甲方 (Person A)</h4>}
                         <div className="flex justify-center gap-3 md:gap-8 overflow-x-auto pb-2">
-                            <PillarCard label="年柱" stem={result.chart.year.stem} branch={result.chart.year.branch} />
-                            <PillarCard label="月柱" stem={result.chart.month.stem} branch={result.chart.month.branch} />
-                            <PillarCard label="日柱" stem={result.chart.day.stem} branch={result.chart.day.branch} />
-                            <PillarCard label="時柱" stem={result.chart.hour.stem} branch={result.chart.hour.branch} />
+                            <PillarCard label="年柱" stem={result.chart.year.stem} branch={result.chart.year.branch} shenSha={result.chart.year.shenSha} />
+                            <PillarCard label="月柱" stem={result.chart.month.stem} branch={result.chart.month.branch} shenSha={result.chart.month.shenSha} />
+                            <PillarCard label="日柱" stem={result.chart.day.stem} branch={result.chart.day.branch} shenSha={result.chart.day.shenSha} />
+                            <PillarCard label="時柱" stem={result.chart.hour.stem} branch={result.chart.hour.branch} shenSha={result.chart.hour.shenSha} />
                         </div>
                     </div>
 
@@ -110,14 +112,21 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                         <div>
                             <h4 className="text-mystic-gold font-bold mb-3 text-sm ml-2">乙方 (Person B)</h4>
                             <div className="flex justify-center gap-3 md:gap-8 overflow-x-auto pb-2">
-                                <PillarCard label="年柱" stem={result.chart2.year.stem} branch={result.chart2.year.branch} />
-                                <PillarCard label="月柱" stem={result.chart2.month.stem} branch={result.chart2.month.branch} />
-                                <PillarCard label="日柱" stem={result.chart2.day.stem} branch={result.chart2.day.branch} />
-                                <PillarCard label="時柱" stem={result.chart2.hour.stem} branch={result.chart2.hour.branch} />
+                                <PillarCard label="年柱" stem={result.chart2.year.stem} branch={result.chart2.year.branch} shenSha={result.chart2.year.shenSha} />
+                                <PillarCard label="月柱" stem={result.chart2.month.stem} branch={result.chart2.month.branch} shenSha={result.chart2.month.shenSha} />
+                                <PillarCard label="日柱" stem={result.chart2.day.stem} branch={result.chart2.day.branch} shenSha={result.chart2.day.shenSha} />
+                                <PillarCard label="時柱" stem={result.chart2.hour.stem} branch={result.chart2.hour.branch} shenSha={result.chart2.hour.shenSha} />
                             </div>
                         </div>
                     )}
                 </div>
+
+                {/* Five Elements Bar (New) */}
+                {result.fiveElements && (
+                    <div className="mb-6 px-2">
+                        <FiveElementBar data={result.fiveElements} />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4 text-center text-sm text-gray-400 mt-6 border-t border-mystic-700 pt-4 relative z-10">
                     <div>

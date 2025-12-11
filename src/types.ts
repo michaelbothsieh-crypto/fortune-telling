@@ -20,6 +20,15 @@ export interface Pillar {
   stem: string;
   branch: string;
   element?: string;
+  shenSha: string[]; // 神煞 (Symbolic Stars) e.g. ["天乙貴人", "咸池"]
+}
+
+export interface FiveElementsData {
+  gold: number;   // 金 %
+  wood: number;   // 木 %
+  water: number;  // 水 %
+  fire: number;   // 火 %
+  earth: number;  // 土 %
 }
 
 export interface BaZiChart {
@@ -48,6 +57,7 @@ export interface AnalysisResponse {
   summary: string;   // 一語道破總結
   score: number;     // 整體運勢評分 (0-100)
   radar: RadarData;  // 六維雷達圖數據
+  fiveElements: FiveElementsData; // 五行能量分佈
   luckTips?: { title: string; content: string }[]; // 改運錦囊
   suggestedQuestions?: string[]; // 建議提問
   usedModel?: string; // 使用的模型名稱
