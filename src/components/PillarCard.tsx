@@ -1,4 +1,5 @@
 import React from 'react';
+import { getShenShaDescription } from '../data/shenShaDescriptions';
 
 interface PillarCardProps {
   label: string;
@@ -6,9 +7,6 @@ interface PillarCardProps {
   branch: string;
   shenSha?: string[];
 }
-
-// ... colors maps exist above ...
-// Wait, I am replacing lines 10-11 which is `// ... colors maps exist above ...` with the actual functions.
 
 const getStemColor = (stem: string) => {
   const map: Record<string, string> = {
@@ -46,7 +44,11 @@ export const PillarCard: React.FC<PillarCardProps> = ({ label, stem, branch, she
       {shenSha && shenSha.length > 0 && (
         <div className="flex flex-col gap-1 mt-2 w-full">
           {shenSha.map((star, idx) => (
-            <span key={idx} className="text-[10px] bg-mystic-900/50 text-mystic-gold px-1 py-0.5 rounded text-center border border-mystic-700/30 whitespace-nowrap overflow-hidden text-ellipsis">
+            <span
+              key={idx}
+              title={getShenShaDescription(star)} // Native Tooltip
+              className="text-[10px] bg-mystic-900/50 text-mystic-gold px-1 py-0.5 rounded text-center border border-mystic-700/30 whitespace-nowrap overflow-hidden text-ellipsis cursor-help hover:bg-mystic-700 hover:text-white transition-colors"
+            >
               {star}
             </span>
           ))}
