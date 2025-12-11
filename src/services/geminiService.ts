@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserInput, AnalysisResponse, ChatMessage, CalendarType, AnalysisMode } from "../types";
+import { UserInput, AnalysisResponse, ChatMessage, AnalysisMode } from "../types";
 
 // Helper: Get Prioritized Models List
 const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
@@ -221,57 +221,72 @@ export const analyzeBaZi = async (
 
   // ...
 
-  export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
-    const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
-    if (!finalApiKey) throw new Error("API Key required");
-
-    // Get date string (e.g. "2023-10-27")
-    const today = new Date().toISOString().split('T')[0];
-
-    const systemPrompt = `
-    你是一位每日開運大師。請給我今天的運勢靈籤。
-    日期：${today}
+  const systemInstruction = `
+    【角色設定】
+    你是一位精通《三命通會》、《淵海子平》、《滴天髓》的八字命理大師。
     
-    請回傳 JSON 格式：
-    {
-       "luckyColor": "幸運色 (e.g. 珊瑚紅)",
-       "luckyNumber": "幸運數字 (0-99)",
-       "luckyDirection": "吉方 (e.g. 西北方)",
-       "quote": "一句充滿禪意的開運詩句 (10-15字)",
-       "advice": "一句具體的行動建議 (20字內)"
-    }
+    【任務】
+    請分析以下八字，並回傳符合Schema的JSON格式。
+    
+    ${specificInstruction}
+
+    【評分標準 (Scoring Rubric)】
+    基準分為 60 分。
+    1. **格局層次 (Pattern)**:
+       - 成格且用神有力 (+10-15分)
+       - 成格但有瑕疵 (+5-10分)
+       - 普通格局 (+0-5分)
+    2. **日主強弱與用神 (Day Master & Useful God)**:
+       - 日主中和，用神得力 (+10分)
+       - 日主偏強/偏弱，但有藥可醫 (+5分)
+       - 過旺或過弱，且無救應 (-5分)
+    3. **刑沖會合 (Clashes & Combinations)**:
+       - 帶天乙貴人、天德月德 (+5分)
+       - 帶桃花、文昌 (+2-3分)
+       - 地支沖剋嚴重且無解救 (-5~-10分)
+       
+    總分最高 95 分 (極貴之命)，最低 60 分。請務必客觀。
   `;
 
-    const genAI = new GoogleGenAI({ apiKey: finalApiKey });
-    // Retry logic for robustness
-    const prioritizedModels = await getPrioritizedModels(finalApiKey);
+  // Start Analysis
+  const { result: analysisResult, model } = await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: analysisSchema,
+      },
+    });
 
-    const { result } = await executeWithRetry(async (model) => {
-      if (response.text) {
-        return JSON.parse(response.text) as AnalysisResponse;
-      }
-      throw new Error("大師正在沉思中，請稍後再試...");
-    }, prioritizedModels);
+    const response = await chat.sendMessage({
+      message: systemInstruction + "\n\n用戶輸入:\n" + JSON.stringify(input)
+    });
 
-    result.usedModel = model;
-    return result;
-  };
-
-
-  export const analyzeCompatibility = async (
-    input1: UserInput,
-    input2: UserInput,
-    apiKey?: string
-  ): Promise<AnalysisResponse> => {
-    const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
-    if (!finalApiKey) {
-      throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+    if (!response.text) {
+      throw new Error("Empty response from AI");
     }
+    return JSON.parse(response.text) as AnalysisResponse;
+  }, prioritizedModels);
 
-    const genAI = new GoogleGenAI({ apiKey: finalApiKey });
-    const prioritizedModels = await getPrioritizedModels(finalApiKey);
+  analysisResult.usedModel = model;
+  return analysisResult;
+};
 
-    const systemInstruction = `
+
+export const analyzeCompatibility = async (
+  input1: UserInput,
+  input2: UserInput,
+  apiKey?: string
+): Promise<AnalysisResponse> => {
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) {
+    throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
+
+  const systemInstruction = `
     【身分設定】
     你是一位精通《三命通會》、《合婚寶鑑》的八字合婚專家。
     
@@ -304,29 +319,29 @@ export const analyzeBaZi = async (
       4. **### 💡 經營關係金句**：一句給這對伴侶的專屬建議。
   `;
 
-    // Re-define schema inside this scope if specific overrides needed, 
-    // but we are re-using the dynamically defined one from analyzeBaZi?
-    // Actually analyzeBaZi defined it locally. We need to copy/define it here or move it out.
-    // For simplicity, let's redefine the schema partially or call a shared helper?
-    // No, let's just re-define the essential schema here to avoid refactoring the whole file yet.
+  // Re-define schema inside this scope if specific overrides needed, 
+  // but we are re-using the dynamically defined one from analyzeBaZi?
+  // Actually analyzeBaZi defined it locally. We need to copy/define it here or move it out.
+  // For simplicity, let's redefine the schema partially or call a shared helper?
+  // No, let's just re-define the essential schema here to avoid refactoring the whole file yet.
 
-    const scoreDesc = "針對兩人契合度、五行互補性的綜合評分 (0-100)。";
+  const scoreDesc = "針對兩人契合度、五行互補性的綜合評分 (0-100)。";
 
-    const compatibilitySchema: Schema = {
-      type: Type.OBJECT,
-      properties: {
-        chart: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
-        chart2: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
-        classical: { type: Type.STRING, description: "合婚古文分析" },
-        modern: { type: Type.STRING, description: "現代相處建議" },
-        summary: { type: Type.STRING, description: "關係一句話總結" },
-        score: { type: Type.NUMBER, description: scoreDesc },
-        radar: { type: Type.OBJECT, properties: { career: { type: Type.NUMBER }, wealth: { type: Type.NUMBER }, love: { type: Type.NUMBER }, health: { type: Type.NUMBER }, social: { type: Type.NUMBER }, family: { type: Type.NUMBER } }, required: ["career", "wealth", "love", "health", "social", "family"] },
-      },
-      required: ["chart", "chart2", "classical", "modern", "summary", "score", "radar"],
-    };
+  const compatibilitySchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      chart: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
+      chart2: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
+      classical: { type: Type.STRING, description: "合婚古文分析" },
+      modern: { type: Type.STRING, description: "現代相處建議" },
+      summary: { type: Type.STRING, description: "關係一句話總結" },
+      score: { type: Type.NUMBER, description: scoreDesc },
+      radar: { type: Type.OBJECT, properties: { career: { type: Type.NUMBER }, wealth: { type: Type.NUMBER }, love: { type: Type.NUMBER }, health: { type: Type.NUMBER }, social: { type: Type.NUMBER }, family: { type: Type.NUMBER } }, required: ["career", "wealth", "love", "health", "social", "family"] },
+    },
+    required: ["chart", "chart2", "classical", "modern", "summary", "score", "radar"],
+  };
 
-    const userPrompt = `
+  const userPrompt = `
     【甲方資料 (Person A)】
     日期類型：${input1.calendarType} ${input1.isLeapMonth ? '(閏月)' : ''}
     出生日期：${input1.birthDate}
@@ -342,43 +357,43 @@ export const analyzeBaZi = async (
     請進行八字合婚分析。
   `;
 
-    const { result } = await executeWithRetry(async (model) => {
-      const chat = genAI.chats.create({
-        model: model,
-        config: {
-          systemInstruction: systemInstruction,
-          responseMimeType: "application/json",
-          responseSchema: compatibilitySchema,
-          temperature: 0.6, // Balanced for consistenty and creativity
-        },
-      });
+  const { result } = await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model: model,
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: compatibilitySchema,
+        temperature: 0.6, // Balanced for consistenty and creativity
+      },
+    });
 
-      const response = await chat.sendMessage({ message: userPrompt });
+    const response = await chat.sendMessage({ message: userPrompt });
 
-      if (response.text) {
-        return JSON.parse(response.text) as AnalysisResponse;
-      }
-      throw new Error("大師正在沉思中，請稍後再試...");
-    }, prioritizedModels);
-
-    return result;
-  };
-
-  export const chatWithMaster = async (
-    history: ChatMessage[],
-    newMessage: string,
-    chartContext: AnalysisResponse,
-    apiKey?: string
-  ): Promise<string> => {
-    const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
-    if (!finalApiKey) {
-      throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+    if (response.text) {
+      return JSON.parse(response.text) as AnalysisResponse;
     }
-    const genAI = new GoogleGenAI({ apiKey: finalApiKey });
-    const prioritizedModels = await getPrioritizedModels(finalApiKey);
+    throw new Error("大師正在沉思中，請稍後再試...");
+  }, prioritizedModels);
 
-    // Construct context from the chart analysis
-    const systemPrompt = `
+  return result;
+};
+
+export const chatWithMaster = async (
+  history: ChatMessage[],
+  newMessage: string,
+  chartContext: AnalysisResponse,
+  apiKey?: string
+): Promise<string> => {
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) {
+    throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
+  }
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
+
+  // Construct context from the chart analysis
+  const systemPrompt = `
     你現在正與命主進行對話。你已經為他算完八字。
     
     【命主八字資訊】
@@ -393,33 +408,33 @@ export const analyzeBaZi = async (
     4. 若使用者問及2026年運勢，請再次強調流年丙午的影響。
   `;
 
-    const { result } = await executeWithRetry(async (model) => {
-      const chat = genAI.chats.create({
-        model: model,
-        config: {
-          systemInstruction: systemPrompt,
-        },
-        history: history.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }]
-        })),
-      });
-      const result = await chat.sendMessage({ message: newMessage });
-      return result.text || "";
-    }, prioritizedModels);
+  const { result } = await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model: model,
+      config: {
+        systemInstruction: systemPrompt,
+      },
+      history: history.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }]
+      })),
+    });
+    const result = await chat.sendMessage({ message: newMessage });
+    return result.text || "";
+  }, prioritizedModels);
 
-    return result;
-  };
+  return result;
+};
 
 
-  export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
-    const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
-    if (!finalApiKey) throw new Error("API Key required");
+export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) throw new Error("API Key required");
 
-    // Get date string (e.g. "2023-10-27")
-    const today = new Date().toISOString().split('T')[0];
+  // Get date string (e.g. "2023-10-27")
+  const today = new Date().toISOString().split('T')[0];
 
-    const systemPrompt = `
+  const systemPrompt = `
     你是一位每日開運大師。請給我今天的運勢靈籤。
     日期：${today}
     
@@ -433,18 +448,18 @@ export const analyzeBaZi = async (
     }
   `;
 
-    const genAI = new GoogleGenAI({ apiKey: finalApiKey });
-    const prioritizedModels = await getPrioritizedModels(finalApiKey);
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const prioritizedModels = await getPrioritizedModels(finalApiKey);
 
-    const { result } = await executeWithRetry(async (model) => {
-      const chat = genAI.chats.create({
-        model,
-        config: { responseMimeType: "application/json" }
-      });
-      const response = await chat.sendMessage({ message: systemPrompt });
-      if (response.text) return JSON.parse(response.text) as import("../types").DailyFortune;
-      throw new Error("Empty response");
-    }, prioritizedModels);
+  const { result } = await executeWithRetry(async (model) => {
+    const chat = genAI.chats.create({
+      model,
+      config: { responseMimeType: "application/json" }
+    });
+    const response = await chat.sendMessage({ message: systemPrompt });
+    if (response.text) return JSON.parse(response.text) as import("../types").DailyFortune;
+    throw new Error("Empty response");
+  }, prioritizedModels);
 
-    return result;
-  };
+  return result;
+};

@@ -61,16 +61,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ chartContext, apiK
                 {chartContext.suggestedQuestions.map((q, idx) => (
                   <button
                     key={idx}
-                      // but state update is async. Better to refactor or just set input.
-                      // For UX, clicking usually populates input or sends immediately.
-                      // Let's make it auto-send.
-                      // Since handleSend relies on `input` state, we need a separate trigger function or pass msg to function.
-                      // I will refactor handleSend to accept optional overrides.
-                      // But for now, let's just populate input + auto-focus, or use a helper.
-                      // Actually, I can just call a send helper.
-                    }}
-                    // Correction: I can't easily call handleSend with event if I want to pass string.
-                    // Let's create `sendMessage(text)` function.
+                    onClick={() => sendMessage(q)}
                     className="p-3 bg-mystic-700/50 hover:bg-mystic-gold hover:text-mystic-900 border border-mystic-600 rounded-lg text-sm transition-all text-left flex items-center gap-2 group"
                   >
                     <Sparkles size={16} className="text-mystic-gold group-hover:text-mystic-900" />
