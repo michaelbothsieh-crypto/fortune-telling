@@ -52,6 +52,9 @@ export interface AnalysisResponse {
   usedModel?: string; // 使用的模型名稱
 }
 
+declare module 'html2pdf.js';
+
+
 export interface UserInput {
   birthDate: string;
   birthTime: string;

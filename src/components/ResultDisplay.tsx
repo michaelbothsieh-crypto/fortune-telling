@@ -15,11 +15,38 @@ interface ResultDisplayProps {
     apiKey: string;
 }
 
+import html2pdf from 'html2pdf.js';
+
+// ... (ResultDisplayProps definition)
+
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onReset, apiKey }) => {
     const [activeTab, setActiveTab] = useState<'modern' | 'classical'>('modern');
+    const contentRef = React.useRef<HTMLDivElement>(null);
+
+    const handleExport = () => {
+        if (!contentRef.current) return;
+
+        const opt = {
+            margin: 10,
+            filename: 'master-bazi-report.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Temporarily show hidden elements for print (if any) or handle specific styling
+        // For now, simple export
+        const button = document.getElementById('export-btn');
+        if (button) button.style.display = 'none';
+
+        html2pdf().set(opt).from(contentRef.current).save().then(() => {
+            if (button) button.style.display = 'flex';
+        });
+    };
 
     return (
-        <div className="space-y-8 animate-fade-in-up">
+        <div ref={contentRef} className="space-y-8 animate-fade-in-up p-4 bg-mystic-900">
+            {/* Added wrapper bg-mystic-900 to ensure background color in PDF if needed, though html2canvas captures element style */}
 
             {/* Chart Section */}
             <section className="bg-mystic-800/50 rounded-xl border border-mystic-700 p-6 md:p-8 relative overflow-hidden">
@@ -56,12 +83,13 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
 
                 <div className="absolute top-4 right-4 z-20">
                     <button
-                        onClick={() => window.print()}
+                        id="export-btn"
+                        onClick={handleExport}
                         className="flex items-center gap-2 px-3 py-1 bg-mystic-gold/20 hover:bg-mystic-gold/40 text-mystic-gold rounded-full text-sm transition-colors print:hidden"
-                        title="匯出報告 / 儲存為 PDF"
+                        title="下載 PDF 報告"
                     >
                         <Download size={16} />
-                        匯出報告
+                        下載報告
                     </button>
                 </div>
 
