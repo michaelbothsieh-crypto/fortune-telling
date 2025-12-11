@@ -107,10 +107,36 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                         </div>
                     </div>
                 </div>
-            </section>
+        </div>
 
-            {/* Analysis Tabs */}
-            <div className="flex space-x-1 bg-mystic-800 p-1 rounded-lg border border-mystic-700">
+                {/* Luck Tips Section */ }
+    {
+        result.luckTips && result.luckTips.length > 0 && (
+            <div className="mt-6 border-t border-mystic-700 pt-4 relative z-10">
+                <h4 className="flex items-center gap-2 text-mystic-gold font-bold mb-3">
+                    <span className="text-xl">💡</span>
+                    開運錦囊 (Luck Boost)
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                    {result.luckTips.map((tip, idx) => (
+                        <div key={idx} className="group relative">
+                            <button className="bg-mystic-700/50 hover:bg-mystic-gold hover:text-mystic-900 border border-mystic-600 text-gray-200 px-4 py-2 rounded-full text-sm transition-all flex items-center gap-2 shadow-sm">
+                                <span>{tip.title}</span>
+                            </button>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-black/90 text-white text-xs p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                {tip.content}
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+            </section >
+
+    {/* Analysis Tabs */ }
+    < div className = "flex space-x-1 bg-mystic-800 p-1 rounded-lg border border-mystic-700" >
                 <button
                     onClick={() => setActiveTab('modern')}
                     className={`flex-1 py-2 px-4 rounded-md font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeTab === 'modern' ? 'bg-mystic-gold text-mystic-900 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
@@ -125,20 +151,20 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                     <Feather size={16} />
                     古籍專業 (徐樂吾風格)
                 </button>
-            </div>
+            </div >
 
-            {/* Analysis Content */}
-            <section className="bg-[#fdfbf7] text-gray-800 rounded-xl border-4 border-double border-mystic-700 p-6 md:p-8 shadow-2xl relative overflow-hidden min-h-[500px]">
-                {/* Decorative stamp */}
-                <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
-                    <div className="border-4 border-red-800 rounded-sm w-32 h-32 flex items-center justify-center transform rotate-12">
-                        <span className="font-calligraphy text-4xl text-red-800">
-                            {mode === AnalysisMode.BASIC && '命理\n正宗'}
-                            {mode === AnalysisMode.YEARLY && '流年\n吉凶'}
-                            {mode === AnalysisMode.SCHOLARLY && '古法\n考據'}
-                        </span>
-                    </div>
-                </div>
+    {/* Analysis Content */ }
+    < section className = "bg-[#fdfbf7] text-gray-800 rounded-xl border-4 border-double border-mystic-700 p-6 md:p-8 shadow-2xl relative overflow-hidden min-h-[500px]" >
+        {/* Decorative stamp */ }
+        < div className = "absolute top-4 right-4 opacity-10 pointer-events-none" >
+            <div className="border-4 border-red-800 rounded-sm w-32 h-32 flex items-center justify-center transform rotate-12">
+                <span className="font-calligraphy text-4xl text-red-800">
+                    {mode === AnalysisMode.BASIC && '命理\n正宗'}
+                    {mode === AnalysisMode.YEARLY && '流年\n吉凶'}
+                    {mode === AnalysisMode.SCHOLARLY && '古法\n考據'}
+                </span>
+            </div>
+                </div >
 
                 <div className="flex items-center space-x-2 mb-6 border-b-2 border-gray-300 pb-4">
                     <BookOpen className="text-mystic-900" size={24} />
@@ -164,34 +190,36 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
                     </ReactMarkdown>
                 </div>
 
-                {activeTab === 'classical' && (
-                    <div className="mt-12 text-right">
-                        <p className="font-calligraphy text-xl text-gray-600">天機算命館 謹批</p>
-                        <div className="inline-block mt-2 border-2 border-red-800 text-red-800 px-3 py-1 font-calligraphy text-sm rotate-[-2deg] opacity-80 rounded-sm">
-                            鐵口直斷
-                        </div>
-                    </div>
-                )}
-            </section>
-
-            {/* Chat Interface */}
-            <ChatInterface chartContext={result} apiKey={apiKey} />
-
-
-            <div className="text-center pt-8 pb-4">
-                <button
-                    onClick={onReset}
-                    className="text-gray-500 hover:text-white underline underline-offset-4 mb-4"
-                >
-                    重新排盤
-                </button>
-
-                {result.usedModel && (
-                    <div className="text-xs text-mystic-700 font-mono opacity-50">
-                        AI Model: {result.usedModel}
-                    </div>
-                )}
+{
+    activeTab === 'classical' && (
+        <div className="mt-12 text-right">
+            <p className="font-calligraphy text-xl text-gray-600">天機算命館 謹批</p>
+            <div className="inline-block mt-2 border-2 border-red-800 text-red-800 px-3 py-1 font-calligraphy text-sm rotate-[-2deg] opacity-80 rounded-sm">
+                鐵口直斷
             </div>
         </div>
+    )
+}
+            </section >
+
+    {/* Chat Interface */ }
+    < ChatInterface chartContext = { result } apiKey = { apiKey } />
+
+
+        <div className="text-center pt-8 pb-4">
+            <button
+                onClick={onReset}
+                className="text-gray-500 hover:text-white underline underline-offset-4 mb-4"
+            >
+                重新排盤
+            </button>
+
+            {result.usedModel && (
+                <div className="text-xs text-mystic-700 font-mono opacity-50">
+                    AI Model: {result.usedModel}
+                </div>
+            )}
+        </div>
+        </div >
     );
 };

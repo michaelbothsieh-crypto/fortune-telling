@@ -48,6 +48,7 @@ export interface AnalysisResponse {
   summary: string;   // 一語道破總結
   score: number;     // 整體運勢評分 (0-100)
   radar: RadarData;  // 六維雷達圖數據
+  luckTips?: { title: string; content: string }[]; // 改運錦囊
   usedModel?: string; // 使用的模型名稱
 }
 
