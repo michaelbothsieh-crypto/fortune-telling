@@ -11,6 +11,8 @@ import { Info, ScrollText, Compass, History, Heart } from 'lucide-react';
 import { AnalysisMode } from './types';
 import MethodologyModal from './components/MethodologyModal';
 
+import { DailyFortuneWidget } from './components/DailyFortuneWidget';
+
 const App: React.FC = () => {
   const {
     input, setInput, secondInput, setSecondInput, apiKey, setApiKey, mode, loading, result, error,
@@ -33,7 +35,11 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-mystic-900 font-serif text-gray-200 selection:bg-mystic-accent selection:text-white pb-20">
       <Header mode={mode} onNavClick={handleNavClick} onReload={handleReload} />
 
+      {/* Daily Fortune Widget */}
+      <DailyFortuneWidget apiKey={apiKey} />
+
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-12">
+
 
         {/* Intro Section */}
         {!result && !loading && (

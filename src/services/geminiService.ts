@@ -320,11 +320,12 @@ export const analyzeCompatibility = async (
     你是一位精通《三命通會》、《合婚寶鑑》的八字合婚專家。
     
     【核心任務】
-    請對兩位命主（甲方、乙方）進行「八字合盤（Syastry）」，並依照 schema 回傳 JSON。
+    請對兩位命主（甲方、乙方）進行「八字合盤（Compatibility Analysis）」，並依照 schema 回傳 JSON。
 
     【分析邏輯】
     1. **排盤**：分別排出甲、乙雙方的八字。若時辰不詳 (isTimeUnknown=true)，請僅用三柱，並在其部分註明準確度折損。
-    2. **日主適配**：分析雙方日元屬性（如：強金配弱木）、五行喜忌是否互補。
+    2. **日主適配**：分析雙方日元屬性（如：強金配弱木）、五行喜忌是否互補。這點非常重要，請詳細說明。
+       - 例如：若甲方喜火，乙方八字火旺，則乙方對甲方有「幫夫/幫妻」之運。
     3. **刑沖會合**：檢查年柱（根基）、日支（配偶宮）是否有六合、三合（大吉）或六沖、刑害（需注意）。
     4. **評分機制**：
        - score (0-100)：綜合契合度。
@@ -336,13 +337,15 @@ export const analyzeCompatibility = async (
          - social: 溝通默契指數
          - family: 價值觀/家庭指數
 
-    【輸出風格】
-    - **summary**: 一句話形容這段關係（例如：「天作之合，互補性極強」或「需多磨合，個性南轅北轍」）。
-    - **classical**: 引用古籍合婚口訣（如：「金土夫妻好姻緣...」），並解釋其在兩人命盤的應驗。
-    - **modern**: 
-      1. **性格互動**：兩個人在一起會是什麼氣氛？
-      2. **衝突點**：最容易吵架的原因是什麼？
-      3. **經營建議**：如何讓關係更長久？
+    【輸出風格要求】
+    - **summary**: 一句話形容這段關係（例如：「天作之合，五行互補極佳」或「需多磨合，個性南轅北轍，動火氣」）。
+    - **classical (古文合婚)**：引用古籍口訣（如：「金土夫妻好姻緣...」），並解釋其在兩人命盤的應驗。
+    - **modern (現代白話，必須Markdown)**：
+      **必須使用 Markdown 結構化輸出，禁止擠在同一段。**
+      1. **### ❤️ 性格互動與氣氛**：兩個人在一起會是什麼氣氛？是互補還是競爭？
+      2. **### ⚡️ 衝突熱點 (地雷區)**：最容易吵架的原因是什麼？（例如：一個急驚風，一個慢郎中）。
+      3. **### 🔮 五行互補建議**：針對五行強弱給予建議（例如：多用綠色，或多去南方旅遊）。
+      4. **### 💡 經營關係金句**：一句給這對伴侶的專屬建議。
   `;
 
   // Re-define schema inside this scope if specific overrides needed, 
@@ -449,4 +452,43 @@ export const chatWithMaster = async (
   }, prioritizedModels);
 
   return result;
+};
+
+
+export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
+  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  if (!finalApiKey) throw new Error("API Key required");
+
+  // Get date string (e.g. "2023-10-27")
+  const today = new Date().toISOString().split('T')[0];
+
+  const systemPrompt = `
+    你是一位每日開運大師。請給我今天的運勢靈籤。
+    日期：${today}
+    
+    請回傳 JSON 格式：
+    {
+       "luckyColor": "幸運色 (e.g. 珊瑚紅)",
+       "luckyNumber": "幸運數字 (0-99)",
+       "luckyDirection": "吉方 (e.g. 西北方)",
+       "quote": "一句充滿禪意的開運詩句 (10-15字)",
+       "advice": "一句具體的行動建議 (20字內)"
+    }
+  `;
+
+  const genAI = new GoogleGenAI({ apiKey: finalApiKey });
+  const model = "gemini-1.5-flash"; // Use fast model for this
+
+  const chat = genAI.chats.create({
+    model,
+    config: {
+      responseMimeType: "application/json",
+    }
+  });
+
+  const response = await chat.sendMessage({ message: systemPrompt });
+  if (response.text) {
+    return JSON.parse(response.text) as import("../types").DailyFortune;
+  }
+  throw new Error("Failed to fetch fortune");
 };

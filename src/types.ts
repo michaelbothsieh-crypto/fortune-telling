@@ -64,3 +64,11 @@ export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
 }
+
+export interface DailyFortune {
+  luckyColor: string;
+  luckyNumber: string;
+  luckyDirection: string;
+  quote: string;
+  advice: string;
+}

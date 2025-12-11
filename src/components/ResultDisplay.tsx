@@ -177,8 +177,6 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
             {/* Chat Interface */}
             <ChatInterface chartContext={result} apiKey={apiKey} />
 
-            {/* Chat Interface */}
-            <ChatInterface chartContext={result} apiKey={apiKey} />
 
             <div className="text-center pt-8 pb-4">
                 <button
