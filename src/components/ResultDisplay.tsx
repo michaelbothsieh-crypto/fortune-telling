@@ -28,21 +28,32 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, mode, onRe
     const handleExport = () => {
         if (!contentRef.current) return;
 
+        // Scroll to top to ensure html2canvas captures from the start
+        window.scrollTo(0, 0);
+
         const opt = {
             margin: 10,
             filename: 'master-bazi-report.pdf',
             image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                scrollY: 0,
+                // Force dark background to match the theme, ensuring white text is visible
+                backgroundColor: '#1c1917'
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
         };
 
-        // Temporarily show hidden elements for print (if any) or handle specific styling
-        // For now, simple export
         const button = document.getElementById('export-btn');
         if (button) button.style.display = 'none';
 
         html2pdf().set(opt).from(contentRef.current).save().then(() => {
             if (button) button.style.display = 'flex';
+        }).catch((err: any) => {
+            console.error('PDF Export failed:', err);
+            if (button) button.style.display = 'flex';
+            alert('PDF 導出失敗，請稍後再試或使用截圖保存。');
         });
     };
 

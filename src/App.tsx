@@ -19,13 +19,12 @@ const App: React.FC = () => {
     handleNavClick, handleSubmit, resetResult
   } = useFortuneTelling();
 
-  const loadingRef = React.useRef<HTMLDivElement>(null);
-
+  // Scroll to top when result is generated
   React.useEffect(() => {
-    if (loading && loadingRef.current) {
-      loadingRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (result) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [loading]);
+  }, [result]);
 
   const [isMethodologyOpen, setIsMethodologyOpen] = React.useState(false);
 
@@ -162,8 +161,9 @@ const App: React.FC = () => {
           )}
         </div>
 
+        {/* Loading Overlay */}
         {loading && (
-          <div ref={loadingRef}>
+          <div className="fixed inset-0 bg-mystic-900/90 z-50 flex items-center justify-center backdrop-blur-sm">
             <LoadingView />
           </div>
         )}
