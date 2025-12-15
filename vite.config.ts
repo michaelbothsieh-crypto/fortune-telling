@@ -27,6 +27,5 @@ export default defineConfig({
       }
     })
   ],
-  // 重要：這裡必須填寫您的 GitHub Repository 名稱，前後都要有斜線
-  base: '/fortune-telling/',
+  // base: '/fortune-telling/', // Vercel 不需要這個設定，除非你要部署到子目錄
 });
