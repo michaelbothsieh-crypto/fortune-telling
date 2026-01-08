@@ -35,8 +35,10 @@ export const useFortuneTelling = () => {
         return saved ? JSON.parse(saved) : DEFAULT_SECOND_INPUT;
     });
 
+    // 優先使用環境變數中的預設 API Key，若無則從 localStorage 讀取使用者自訂 Key
+    const envApiKey = import.meta.env.GEMINI_API_KEY || '';
     const [apiKey, setApiKey] = useState(() => {
-        return localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
+        return envApiKey || localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
     });
 
     const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.BASIC);

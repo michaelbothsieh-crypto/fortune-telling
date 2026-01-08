@@ -48,6 +48,37 @@
 
 ---
 
+## ⚙️ 環境變數設定
+
+本專案支援透過環境變數設定預設的 Gemini API Key，讓使用者可以直接使用而無需自行申請。
+
+### 本地開發
+
+1. 複製 `.env.example` 為 `.env`：
+   ```bash
+   cp .env.example .env
+   ```
+
+2. 編輯 `.env` 並填入您的 API Key：
+   ```
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+3. 啟動開發伺服器：
+   ```bash
+   npm run dev
+   ```
+
+### 部署設定
+
+在各平台的環境變數設定中添加：
+
+| 變數名稱 | 說明 |
+|---------|------|
+| `GEMINI_API_KEY` | Google Gemini API Key（[取得連結](https://aistudio.google.com/app/apikey)）|
+
+> **注意**：若未設定環境變數，使用者需自行輸入 API Key 才能使用 AI 功能。
+
 ## 👨‍💻 關於作者
 
 本專案由 AI 協作開發，致力於將傳統智慧以現代科技重新呈現。如果您對本專案有興趣或建議，歡迎透過 GitHub Issues 提出。

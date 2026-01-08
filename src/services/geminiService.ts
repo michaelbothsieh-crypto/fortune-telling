@@ -92,7 +92,7 @@ export const analyzeBaZi = async (
   mode: AnalysisMode,
   apiKey?: string
 ): Promise<AnalysisResponse> => {
-  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  const finalApiKey = apiKey || import.meta.env.GEMINI_API_KEY;
   if (!finalApiKey) {
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
@@ -320,7 +320,7 @@ export const analyzeCompatibility = async (
   input2: UserInput,
   apiKey?: string
 ): Promise<AnalysisResponse> => {
-  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  const finalApiKey = apiKey || import.meta.env.GEMINI_API_KEY;
   if (!finalApiKey) {
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
@@ -434,7 +434,7 @@ export const chatWithMaster = async (
   chartContext: AnalysisResponse,
   apiKey?: string
 ): Promise<string> => {
-  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  const finalApiKey = apiKey || import.meta.env.GEMINI_API_KEY;
   if (!finalApiKey) {
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
@@ -477,7 +477,7 @@ export const chatWithMaster = async (
 
 
 export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
-  const finalApiKey = apiKey || import.meta.env.VITE_API_KEY;
+  const finalApiKey = apiKey || import.meta.env.GEMINI_API_KEY;
   if (!finalApiKey) throw new Error("API Key required");
 
   // Get date string (e.g. "2023-10-27")

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Sparkles, Calendar } from 'lucide-react';
+import { Search, Sparkles, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { UserInput, Gender, CalendarType, AnalysisMode } from '../types';
 
 
@@ -163,19 +163,46 @@ export const AnalysisForm: React.FC<AnalysisFormProps> = ({
             </div>
 
             {/* API Key Input (Always Global) */}
-            <div className="bg-mystic-900/50 p-4 rounded-lg border border-mystic-700 mb-6">
-                <label className="block text-sm text-gray-400 mb-2">Google Gemini API Key (選填)</label>
-                <input
-                    type="password"
-                    placeholder="若無環境變數設定，請在此輸入"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    className="w-full bg-mystic-900 border border-mystic-700 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none transition-colors text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                    * 註：本系統之「排盤論命」與「大師對話」功能皆需呼叫 AI 運算生成內容，故需消耗 API 配額。若您有自己的 Key 可在此輸入 (不會儲存於伺服器)。
-                </p>
-            </div>
+            {(() => {
+                const hasEnvKey = !!import.meta.env.GEMINI_API_KEY;
+                return (
+                    <div className={`p-4 rounded-lg border mb-6 ${hasEnvKey
+                        ? 'bg-green-900/20 border-green-700/50'
+                        : 'bg-mystic-900/50 border-mystic-700'
+                        }`}>
+                        {hasEnvKey ? (
+                            /* 有預設 Key 的提示 */
+                            <div className="flex items-center gap-2 mb-3">
+                                <CheckCircle className="text-green-400" size={18} />
+                                <span className="text-green-400 font-medium text-sm">已啟用預設 API Key，可直接使用！</span>
+                            </div>
+                        ) : (
+                            /* 無預設 Key 的提示 */
+                            <div className="flex items-center gap-2 mb-3">
+                                <AlertCircle className="text-amber-400" size={18} />
+                                <span className="text-amber-400 font-medium text-sm">請輸入您的 Google Gemini API Key</span>
+                            </div>
+                        )}
+
+                        <label className="block text-sm text-gray-400 mb-2">
+                            {hasEnvKey ? 'Google Gemini API Key (選填，可覆蓋預設 Key)' : 'Google Gemini API Key (必填)'}
+                        </label>
+                        <input
+                            type="password"
+                            placeholder={hasEnvKey ? '留空則使用預設 Key，或輸入您自己的 Key' : '請輸入您的 Gemini API Key'}
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            className="w-full bg-mystic-900 border border-mystic-700 rounded px-4 py-2 text-white focus:border-mystic-gold focus:outline-none transition-colors text-sm"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                            {hasEnvKey
+                                ? '* 本站已提供免費 API 配額供您體驗。若您有自己的 Key，亦可在此輸入使用 (資料不會儲存於伺服器)。'
+                                : '* 註：本系統之「排盤論命」與「大師對話」功能皆需呼叫 AI 運算生成內容，故需消耗 API 配額。您輸入的 Key 僅儲存於本機瀏覽器，不會上傳至伺服器。'
+                            }
+                        </p>
+                    </div>
+                );
+            })()}
 
             <form onSubmit={handleSubmit} className="space-y-8">
 

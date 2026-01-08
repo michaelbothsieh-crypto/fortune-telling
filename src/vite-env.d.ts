@@ -2,6 +2,16 @@
 // If the above line fails in your environment, use the declarations below and comment out the reference.
 // Since the error is explicitly about this line, we provide the manual definitions to ensure build success.
 
+// Vite 環境變數類型定義
+interface ImportMetaEnv {
+  readonly GEMINI_API_KEY: string;
+  // 可在此新增更多環境變數
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 // Augment the global NodeJS namespace to ensure ProcessEnv has API_KEY
 // This avoids "redeclare block-scoped variable" error by not redeclaring `process`.
 declare namespace NodeJS {
