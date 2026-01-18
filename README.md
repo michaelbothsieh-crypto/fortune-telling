@@ -3,6 +3,8 @@
 [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg)](https://michaelbothsieh-crypto.github.io/fortune-telling/)
 [![License](https://img.shields.io/github/license/michaelbothsieh-crypto/fortune-telling)](LICENSE)
 
+![App Preview](assets/screenshots/fortune_landing_1768744631948.png)
+
 **結合傳統子平八字學理與 Google Gemini AI 的現代化算命應用。**
 
 這是一個全繁體中文介面的命理分析平台，旨在探索傳統命理與人工智慧的結合可能。我們承諾「無伺服器儲存」，確保您的命盤隱私僅在瀏覽器與 Google API 間傳輸。
