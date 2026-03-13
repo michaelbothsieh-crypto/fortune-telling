@@ -24,8 +24,7 @@
 
 這是一個全繁體中文介面的命理分析平台，旨在探索傳統命理與人工智慧的結合可能。我們承諾「無伺服器儲存」，確保您的命盤隱私僅在瀏覽器與 Google API 間傳輸。
 
-🔗 **立即體驗**：[https://michaelbothsieh-crypto.github.io/fortune-telling/](https://michaelbothsieh-crypto.github.io/fortune-telling/)
-
+🔗 **立即體驗**：[https://fortune-telling-sigma.vercel.app/](https://fortune-telling-sigma.vercel.app/)
 ---
 
 ## 🔮 特色功能
