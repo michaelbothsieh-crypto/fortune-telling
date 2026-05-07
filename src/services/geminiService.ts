@@ -1,6 +1,102 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserInput, AnalysisResponse, ChatMessage, AnalysisMode } from "../types";
+import { UserInput, AnalysisResponse, ChatMessage, AnalysisMode, BaZiChart, Pillar, RadarData, FiveElementsData } from "../types";
+
+const EMPTY_PILLAR: Pillar = {
+  stem: "未知",
+  branch: "未知",
+  shenSha: [],
+};
+
+const EMPTY_RADAR: RadarData = {
+  career: 0,
+  wealth: 0,
+  love: 0,
+  health: 0,
+  social: 0,
+  family: 0,
+};
+
+const EMPTY_FIVE_ELEMENTS: FiveElementsData = {
+  gold: 0,
+  wood: 0,
+  water: 0,
+  fire: 0,
+  earth: 0,
+};
+
+const normalizePillar = (value: unknown): Pillar => {
+  if (!value || typeof value !== "object") return { ...EMPTY_PILLAR };
+
+  const pillar = value as Partial<Pillar>;
+  return {
+    stem: typeof pillar.stem === "string" && pillar.stem ? pillar.stem : EMPTY_PILLAR.stem,
+    branch: typeof pillar.branch === "string" && pillar.branch ? pillar.branch : EMPTY_PILLAR.branch,
+    element: typeof pillar.element === "string" ? pillar.element : undefined,
+    shenSha: Array.isArray(pillar.shenSha) ? pillar.shenSha.filter((item): item is string => typeof item === "string") : [],
+  };
+};
+
+const normalizeChart = (value: unknown): BaZiChart => {
+  const chart = value && typeof value === "object" ? value as Partial<BaZiChart> : {};
+
+  return {
+    year: normalizePillar(chart.year),
+    month: normalizePillar(chart.month),
+    day: normalizePillar(chart.day),
+    hour: normalizePillar(chart.hour),
+    currentDaYun: typeof chart.currentDaYun === "string" ? chart.currentDaYun : "未知",
+    me: typeof chart.me === "string" ? chart.me : "未知",
+  };
+};
+
+const getFiniteNumber = (value: unknown, fallback = 0): number => {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+};
+
+const normalizeRadar = (value: unknown): RadarData => {
+  const radar = value && typeof value === "object" ? value as Partial<RadarData> : {};
+
+  return {
+    career: getFiniteNumber(radar.career),
+    wealth: getFiniteNumber(radar.wealth),
+    love: getFiniteNumber(radar.love),
+    health: getFiniteNumber(radar.health),
+    social: getFiniteNumber(radar.social),
+    family: getFiniteNumber(radar.family),
+  };
+};
+
+const normalizeFiveElements = (value: unknown): FiveElementsData => {
+  const fiveElements = value && typeof value === "object" ? value as Partial<FiveElementsData> : {};
+
+  return {
+    gold: getFiniteNumber(fiveElements.gold),
+    wood: getFiniteNumber(fiveElements.wood),
+    water: getFiniteNumber(fiveElements.water),
+    fire: getFiniteNumber(fiveElements.fire),
+    earth: getFiniteNumber(fiveElements.earth),
+  };
+};
+
+const normalizeAnalysisResponse = (value: unknown): AnalysisResponse => {
+  const response = value && typeof value === "object" ? value as Partial<AnalysisResponse> : {};
+  const chart2 = response.chart2 && typeof response.chart2 === "object" ? normalizeChart(response.chart2) : undefined;
+
+  return {
+    chart: normalizeChart(response.chart),
+    chart2,
+    classical: typeof response.classical === "string" ? response.classical : "",
+    modern: typeof response.modern === "string" ? response.modern : "",
+    summary: typeof response.summary === "string" ? response.summary : "分析資料不完整，請重新送出。",
+    score: typeof response.score === "number" && Number.isFinite(response.score) ? response.score : 0,
+    radar: normalizeRadar(response.radar || EMPTY_RADAR),
+    fiveElements: normalizeFiveElements(response.fiveElements || EMPTY_FIVE_ELEMENTS),
+    luckTips: Array.isArray(response.luckTips) ? response.luckTips : undefined,
+    suggestedQuestions: Array.isArray(response.suggestedQuestions) ? response.suggestedQuestions.filter((item): item is string => typeof item === "string") : undefined,
+    usedModel: response.usedModel,
+  };
+};
 
 // Helper: Get Prioritized Models List
 const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
@@ -119,6 +215,7 @@ export const analyzeBaZi = async (
           currentDaYun: { type: Type.STRING, description: "當前大運" },
           me: { type: Type.STRING, description: "日元" },
         },
+        required: ["year", "month", "day", "hour", "currentDaYun", "me"],
       },
       chart2: {
         type: Type.OBJECT,
@@ -130,6 +227,7 @@ export const analyzeBaZi = async (
           currentDaYun: { type: Type.STRING },
           me: { type: Type.STRING },
         },
+        required: ["year", "month", "day", "hour", "currentDaYun", "me"],
         nullable: true,
       },
 
@@ -307,7 +405,7 @@ export const analyzeBaZi = async (
     if (!response.text) {
       throw new Error("Empty response from AI");
     }
-    return JSON.parse(response.text) as AnalysisResponse;
+    return normalizeAnalysisResponse(JSON.parse(response.text));
   }, prioritizedModels);
 
   analysisResult.usedModel = model;
@@ -379,8 +477,8 @@ export const analyzeCompatibility = async (
   const compatibilitySchema: Schema = {
     type: Type.OBJECT,
     properties: {
-      chart: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
-      chart2: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING } } }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } } },
+      chart: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } }, required: ["year", "month", "day", "hour", "currentDaYun", "me"] },
+      chart2: { type: Type.OBJECT, properties: { year: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, month: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, day: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, hour: { type: Type.OBJECT, properties: { stem: { type: Type.STRING }, branch: { type: Type.STRING }, element: { type: Type.STRING }, shenSha: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["stem", "branch", "shenSha"] }, currentDaYun: { type: Type.STRING }, me: { type: Type.STRING } }, required: ["year", "month", "day", "hour", "currentDaYun", "me"] },
       classical: { type: Type.STRING, description: "合婚古文分析" },
       modern: { type: Type.STRING, description: "現代相處建議" },
       summary: { type: Type.STRING, description: "關係一句話總結" },
@@ -420,7 +518,7 @@ export const analyzeCompatibility = async (
     const response = await chat.sendMessage({ message: userPrompt });
 
     if (response.text) {
-      return JSON.parse(response.text) as AnalysisResponse;
+      return normalizeAnalysisResponse(JSON.parse(response.text));
     }
     throw new Error("大師正在沉思中，請稍後再試...");
   }, prioritizedModels);
