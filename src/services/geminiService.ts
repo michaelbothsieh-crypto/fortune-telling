@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { UserInput, AnalysisResponse, ChatMessage, AnalysisMode, BaZiChart, Pillar, RadarData, FiveElementsData } from "../types";
+import { calculateBaZi } from "./baziCalculator";
 
 const EMPTY_PILLAR: Pillar = {
   stem: "未知",
@@ -98,7 +99,7 @@ const normalizeAnalysisResponse = (value: unknown): AnalysisResponse => {
   };
 };
 
-// Helper: Get Prioritized Models List
+/// 取得優先採用的模型列表
 const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -107,27 +108,23 @@ const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
     const data = await response.json();
     const models = (data.models || []).map((m: any) => m.name.replace('models/', ''));
 
-    // Filter usable models
     const candidates = models.filter((name: string) =>
       name.includes('gemini') &&
       !name.includes('vision') &&
       !name.includes('embedding') &&
-      !name.includes('tts') &&    // Exclude Text-to-Speech only models
-      !name.includes('audio')     // Exclude Audio-focused models if they don't support text
+      !name.includes('tts') &&
+      !name.includes('audio')
     );
 
-    // Sort by Heuristic
     candidates.sort((a: string, b: string) => {
-      // 1. Version Check
       const getVersion = (n: string) => {
         const match = n.match(/(\d+\.\d+)/);
         return match ? parseFloat(match[1]) : 0;
       };
       const vA = getVersion(a);
       const vB = getVersion(b);
-      if (vA !== vB) return vB - vA; // Higher version first
+      if (vA !== vB) return vB - vA;
 
-      // 2. Tier Check
       const getTierScore = (n: string) => {
         if (n.includes('ultra')) return 3;
         if (n.includes('pro')) return 2;
@@ -144,14 +141,13 @@ const getPrioritizedModels = async (apiKey: string): Promise<string[]> => {
   }
 };
 
-// Retry Helper
+/// 執行附帶重試機制的 AI 請求
 const executeWithRetry = async <T>(
   action: (model: string) => Promise<T>,
   modelModels: string[]
 ): Promise<{ result: T; model: string }> => {
   let lastError: any;
 
-  // Ensure we have at least one fallback
   if (modelModels.length === 0) modelModels.push("gemini-2.0-flash");
 
   for (const model of modelModels) {
@@ -163,26 +159,19 @@ const executeWithRetry = async <T>(
       console.warn(`[Gemini Service] Model ${model} failed.`, error);
       lastError = error;
 
-      console.warn(`[Gemini Service] Model ${model} failed.`, error);
-      lastError = error;
-
-      // User requested: "If error received, skip to next model"
-      // We explicitly allow 400 (Invalid Argument) to trigger a retry/skip.
-      // In fact, we should basically continue on almost any error except maybe auth failure if we want to be super resilient,
-      // but let's stick to the user's "skip to next" instruction.
       const isCriticalError = error.message?.includes("API key not valid") || error.message?.includes("PERMISSION_DENIED");
 
       if (isCriticalError) {
-        throw error; // Stop if API key is wrong
+        throw error;
       }
 
-      // Continue to next model for 400, 404, 429, 503, etc.
       continue;
     }
   }
   throw lastError;
 };
 
+/// 進行單人八字命盤深度分析
 export const analyzeBaZi = async (
   input: UserInput,
   mode: AnalysisMode,
@@ -193,7 +182,8 @@ export const analyzeBaZi = async (
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
 
-  // Dynamic Schema Definition based on Mode to ensure clear scoring criteria
+  const exactChart = calculateBaZi(input);
+
   const getScoreDescription = () => {
     if (mode === AnalysisMode.YEARLY) {
       return "針對 2025-2026 流年運勢吉凶的綜合評分 (0-100)。分數越高代表流年越順遂，分數低則代表需保守防禦。";
@@ -368,15 +358,9 @@ export const analyzeBaZi = async (
     `;
   }
 
-  // ... (rest of function until execution)
-
-  // ... (AnalyzeBaZi implementation logic same as before, ensuring schema matches)
-
-  // ...
-
   const systemInstruction = `
     【角色設定】
-    你是一位精通《三命通會》、《淵海子平》、《滴天髓》的八字命理大師。
+    你是一位精通《三命通會》、《淵海子平》、《滴天髓》、《窮通寶鑑》的子平八字命理大師。
     
     【任務】
     請分析以下八字，並回傳符合Schema的JSON格式。
@@ -385,10 +369,19 @@ export const analyzeBaZi = async (
 
     ${scoringRubric}
        
+    【強判定規則：子平正宗定格】
+    請依據以下步驟確立格局與分析用神：
+    1. **月令定格**：以月支藏干透出天干者為先（如寅月透丙火為食神格）。若無透出，以月支本氣定格。亦需判斷是否符合從革、從財、從殺、專旺等外格。
+    2. **日主強弱與用神**：依據得令、得地、得助與否判定日干強弱。身強者宜剋洩折中，身弱者宜扶抑印比。
+    3. **病藥與調候**：寒木忌水多（需火暖局）、燥土喜水潤（需水滋養），結合《窮通寶鑑》之調候喜忌取用神。
+
+    【重要：精確排盤數據】
+    這是經由精密曆法計算出的命主八字，請務必採用此排盤作為你回答中 "chart" 欄位的值，切勿自行更改天干地支（你只需為各柱補上合理的 shenSha 神煞列表，如天乙貴人、驛馬、文昌、羊刃等）：
+    ${JSON.stringify(exactChart, null, 2)}
+
     總分最高 95 分 (極貴之命)，最低 60 分。請務必客觀。
   `;
 
-  // Start Analysis
   const { result: analysisResult, model } = await executeWithRetry(async (model) => {
     const chat = genAI.chats.create({
       model,
@@ -413,6 +406,7 @@ export const analyzeBaZi = async (
 };
 
 
+/// 進行甲乙雙方八字合婚分析
 export const analyzeCompatibility = async (
   input1: UserInput,
   input2: UserInput,
@@ -423,54 +417,52 @@ export const analyzeCompatibility = async (
     throw new Error("請輸入 Google Gemini API Key 或設定環境變數");
   }
 
+  const exactChart1 = calculateBaZi(input1);
+  const exactChart2 = calculateBaZi(input2);
+
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
   const prioritizedModels = await getPrioritizedModels(finalApiKey);
 
   const systemInstruction = `
     【身分設定】
-    你是一位精通《三命通會》、《合婚寶鑑》的八字合婚專家。
+    你是一位精通《三命通會》、《合婚寶鑑》、《滴天髓》的八字合婚專家。
     
     【核心任務】
     請對兩位命主（甲方、乙方）進行「八字合盤（Compatibility Analysis）」，並依照 schema 回傳 JSON。
 
-    【分析邏輯】
-    1. **排盤**：分別排出甲、乙雙方的八字。詳細計算五行能量分佈。
-    2. **日元適配**：分析雙方日元屬性（如：強金配弱木）。這點非常重要。
-    3. **五行喜忌**：檢查互補性（如：甲方喜火，乙方火旺，則為大吉）。
-    4. **刑沖會合**：檢查年柱（根基）、日支（配偶宮）是否有六合、三合（大吉）或六沖（需注意）。
+    【重要：精確排盤數據】
+    這是經由精密曆法計算出的雙方八字，請務必採用此數據作為你回答中 "chart" (甲方) 與 "chart2" (乙方) 欄位的值，切勿自行更改天干地支（你只需為各柱補上合理的 shenSha 神煞列表）：
+    - 甲方八字: ${JSON.stringify(exactChart1, null, 2)}
+    - 乙方八字: ${JSON.stringify(exactChart2, null, 2)}
 
-    【評分標準 (Scoring Rubric) - 合婚專用】
-    基準分為 60 分。
-    1. **五行互補 (Elemental Balance)**:
-       - 雙方喜用神完全互補 (e.g. 一喜水，一水旺) (+15-20分)
-       - 部分互補，無嚴重衝突 (+5-10分)
-       - 雙方忌神相同（如皆忌火且火旺） (-5~-10分)
-    2. **日柱與夫妻宮 (Day Pillar)**:
-       - 日支相生或六合/三合 (+10分)
-       - 日干五合 (如甲己合) (+5分)
-       - 日支相沖 (如子午沖) 且無解 (-10分)
-    3. **互動品質 (Interaction Quality)**:
-       - 性格互補 (一急一緩) (+5分)
-       - 價值觀(月令)相近 (+5分)
+    【分析與評分邏輯】
+    請從以下三大關鍵維度進行嚴格評分與合盤分析，總分為 100 分（基準分為 60 分，依據表現加減分，最高 95 分，最低 60 分）：
 
-    總分最高 95 分 (天作之合)，最低 60 分 (需多磨合)。
+    1. **五行互補性 (Elemental Balance) - 佔 40%**:
+       - 互補喜用 (+15-20分)：分析甲方喜用神是否為乙方所旺五行，或乙方喜用為甲方所旺，形成互補。
+       - 調候互補 (+10分)：一燥一濕、一寒一暖是否能互相調節。
+       - 同忌同旺 (-10分)：若雙方皆忌某五行（如皆忌火）且雙方八字中該五行皆極旺，則扣分。
+
+    2. **日柱契合度 (Day Pillar Chemistry) - 佔 30%**:
+       - 夫妻宮相合 (+10-15分)：日支呈六合、三合，代表內心契合、相處甜蜜。
+       - 日干化合 (+5-10分)：日干呈現五合（如甲己合、乙庚合），代表宿世因緣與默契。
+       - 夫妻宮相沖 (-10分)：日支相沖（如子午沖、寅申沖）或相刑，代表婚姻宮受損，日常容易摩擦。
+
+    3. **宮位刑沖合化 (Palace Interactions & Clashes) - 佔 30%**:
+       - 根基契合 (+5-10分)：年支相合（如三合、六合），代表長輩支持、家庭根基穩固。
+       - 價值觀契合 (+5-10分)：月支相合，代表處事態度與生活節奏容易同步。
+       - 宮位多處刑沖 (-5~-10分)：若多處干剋支沖，則代表雙方家庭或外部環境阻力大。
 
     【輸出風格要求】
     - **summary**: 一句話形容這段關係（例如：「天作之合，五行互補極佳」或「需多磨合，個性南轅北轍，動火氣」）。
     - **classical (古文合婚)**：引用古籍口訣（如：「金土夫妻好姻緣...」），並解釋其在兩人命盤的應驗。
     - **modern (現代白話，必須Markdown)**：
       **必須使用 Markdown 結構化輸出，禁止擠在同一段。**
-      1. **### ❤️ 性格互動與氣氛**：兩個人在一起會是什麼氣氛？是互補還是競爭？
-      2. **### ⚡️ 衝突熱點 (地雷區)**：最容易吵架的原因是什麼？（例如：一個急驚風，一個慢郎中）。
-      3. **### 🔮 五行互補建議**：針對五行強弱給予建議（例如：多用綠色，或多去南方旅遊）。
-      4. **### 💡 經營關係金句**：一句給這對伴侶的專屬建議。
+      - **### ❤️ 性格互動與氣氛**：兩個人在一起會是什麼氣氛？是互補還是競爭？
+      - **### ⚡️ 衝突熱點 (地雷區)**：最容易吵架的原因是什麼？（例如：一個急驚風，一個慢郎中）。
+      - **### 🔮 五行互補建議**：針對五行強弱給予建議（例如：多用綠色，或多去南方旅遊）。
+      - **### 💡 經營關係金句**：一句給這對伴侶的專屬建議。
   `;
-
-  // Re-define schema inside this scope if specific overrides needed, 
-  // but we are re-using the dynamically defined one from analyzeBaZi?
-  // Actually analyzeBaZi defined it locally. We need to copy/define it here or move it out.
-  // For simplicity, let's redefine the schema partially or call a shared helper?
-  // No, let's just re-define the essential schema here to avoid refactoring the whole file yet.
 
   const scoreDesc = "針對兩人契合度、五行互補性的綜合評分 (0-100)。";
 
@@ -511,7 +503,7 @@ export const analyzeCompatibility = async (
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: compatibilitySchema,
-        temperature: 0.6, // Balanced for consistenty and creativity
+        temperature: 0.6,
       },
     });
 
@@ -526,6 +518,7 @@ export const analyzeCompatibility = async (
   return result;
 };
 
+/// 與命理大師進行互動對話
 export const chatWithMaster = async (
   history: ChatMessage[],
   newMessage: string,
@@ -539,7 +532,6 @@ export const chatWithMaster = async (
   const genAI = new GoogleGenAI({ apiKey: finalApiKey });
   const prioritizedModels = await getPrioritizedModels(finalApiKey);
 
-  // Construct context from the chart analysis
   const systemPrompt = `
     你現在正與命主進行對話。你已經為他算完八字。
     
@@ -574,11 +566,11 @@ export const chatWithMaster = async (
 };
 
 
+/// 取得今日開運靈籤與建議
 export const getDailyQuote = async (apiKey: string): Promise<import("../types").DailyFortune> => {
   const finalApiKey = apiKey || import.meta.env.GEMINI_API_KEY;
   if (!finalApiKey) throw new Error("API Key required");
 
-  // Get date string (e.g. "2023-10-27")
   const today = new Date().toISOString().split('T')[0];
 
   const systemPrompt = `
